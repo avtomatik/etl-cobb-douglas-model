@@ -1,0 +1,11 @@
+[project]
+name = "etl-cobb-douglas-model"
+version = "0.1.0"
+description = "ETL pipeline for analyzing economic data using the Cobb-Douglas production function model."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "matplotlib>=3.10.8",
+    "pandas>=2.3.3",
+    "requests>=2.32.5",
+]

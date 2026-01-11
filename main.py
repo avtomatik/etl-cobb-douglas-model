@@ -1,22 +1,8 @@
-from dataclasses import dataclass
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
 from core.data import duckdb_connection
-
-DATASETS = {
-    "DOUGLAS": "douglas",
-    "USA_COBB_DOUGLAS": "usa_cobb_douglas",
-    "USCB": "uscb",
-}
-
-
-@dataclass(frozen=True, eq=True)
-class SeriesID:
-    series_id: str
-    source: str
 
 
 def fetch_data_from_duckdb(query: str) -> pd.DataFrame:
@@ -38,111 +24,88 @@ def fetch_data_from_duckdb(query: str) -> pd.DataFrame:
     return df
 
 
-def read_source(series_id: SeriesID) -> pd.DataFrame:
+def combine_cobb_douglas() -> pd.DataFrame:
     """
-    Fetch data from DuckDB based on the SeriesID.
-
-    Parameters
-    ----------
-    series_id : SeriesID
-        The SeriesID object that identifies the dataset to retrieve.
+    Refactor the combine_cobb_douglas() function to use pure SQL for data combination.
 
     Returns
     -------
     pd.DataFrame
-        The data for the given series.
+        DataFrame containing combined data for Capital, Labor, and Product.
     """
-    # Get the table name from the DATASETS dictionary
-    table_name = DATASETS[series_id.source]
-
-    # SQL query to fetch the relevant data from DuckDB
-    query = f"SELECT period, value FROM raw.{
-        table_name} WHERE series_id = '{series_id.series_id}'"
-
-    # Fetch data from DuckDB
-    df = fetch_data_from_duckdb(query)
-
-    # Ensure the dataframe has the expected columns
-    assert all(
-        col in df.columns for col in ["period", "value"]
-    ), "Data columns mismatch"
-
-    # Set 'period' as the index
-    return df.set_index("period").rename(
-        columns={"value": series_id.series_id}
+    sql_query = """
+    WITH capital_data AS (
+        SELECT period, value AS capital
+        FROM raw.usa_cobb_douglas
+        WHERE series_id = 'CDT2S4'
+    ),
+    labor_data AS (
+        SELECT period, value AS labor
+        FROM raw.usa_cobb_douglas
+        WHERE series_id = 'CDT3S1'
+    ),
+    product_data AS (
+        SELECT period, value AS product
+        FROM raw.uscb
+        WHERE series_id = 'J0014'
+    ),
+    product_nber_data AS (
+        SELECT period, value AS product_nber
+        FROM raw.uscb
+        WHERE series_id = 'J0013'
+    ),
+    product_rev_data AS (
+        SELECT period, value AS product_rev
+        FROM raw.douglas
+        WHERE series_id = 'DT24AS01'
     )
 
-
-def stockpile(series_ids: list[SeriesID]) -> pd.DataFrame:
+    SELECT
+        capital_data.period,
+        capital_data.capital,
+        labor_data.labor,
+        product_data.product,
+        product_nber_data.product_nber,
+        product_rev_data.product_rev
+    FROM
+        capital_data
+    JOIN labor_data ON capital_data.period = labor_data.period
+    JOIN product_data ON capital_data.period = product_data.period
+    LEFT JOIN product_nber_data ON capital_data.period = product_nber_data.period
+    LEFT JOIN product_rev_data ON capital_data.period = product_rev_data.period
+    ORDER BY capital_data.period;
     """
-    Aggregate data for a list of SeriesIDs from DuckDB.
 
-    Parameters
-    ----------
-    series_ids : list[SeriesID]
-        List of SeriesID objects to retrieve data for.
-
-    Returns
-    -------
-    pd.DataFrame
-        A combined DataFrame containing data for all SeriesIDs.
-    """
-    dfs = [read_source(series_id) for series_id in series_ids]
-    return pd.concat(dfs, axis=1, sort=True)
-
-
-def combine_cobb_douglas(series_number: int = 3) -> pd.DataFrame:
-    """
-    Original Cobb--Douglas Data Collection Extension
-    Parameters
-    ----------
-    series_number : int, optional
-        DESCRIPTION. The default is 3.
-    Returns
-    -------
-    DataFrame
-        ================== =================================
-        df.index           Period
-        df.iloc[:, 0]      Capital
-        df.iloc[:, 1]      Labor
-        df.iloc[:, 2]      Product
-        ================== =================================
-    """
-    MAP = {
-        "CDT2S4": "capital",
-        "CDT3S1": "labor",
-        "J0014": "product",
-        "J0013": "product_nber",
-        "DT24AS01": "product_rev",
-    }
-    SERIES_IDS = [
-        # =====================================================================
-        # C.W. Cobb, P.H. Douglas Capital Series: Total Fixed Capital in 1880 dollars (4)
-        # =====================================================================
-        SeriesID("CDT2S4", "USA_COBB_DOUGLAS"),
-        # =====================================================================
-        # C.W. Cobb, P.H. Douglas Labor Series: Average Number Employed (in thousands)
-        # =====================================================================
-        SeriesID("CDT3S1", "USA_COBB_DOUGLAS"),
-        # =====================================================================
-        # Bureau of the Census, 1949, Page 179, J14: Warren M. Persons, Index of Physical Production of Manufacturing
-        # =====================================================================
-        SeriesID("J0014", "USCB"),
-        # =====================================================================
-        # Bureau of the Census, 1949, Page 179, J13: National Bureau of Economic Research Index of Physical Output, All Manufacturing Industries.
-        # =====================================================================
-        SeriesID("J0013", "USCB"),
-        # =====================================================================
-        # The Revised Index of Physical Production for All Manufacturing In the United States, 1899--1926
-        # =====================================================================
-        SeriesID("DT24AS01", "DOUGLAS"),
-    ]
-    return (
-        stockpile(SERIES_IDS)
-        .rename(columns=MAP)
-        .iloc[:, range(series_number)]
-        .dropna(axis=0)
+    sql_query = """
+    WITH capital_data AS (
+        SELECT period, value AS capital
+        FROM raw.usa_cobb_douglas
+        WHERE series_id = 'CDT2S4'
+    ),
+    labor_data AS (
+        SELECT period, value AS labor
+        FROM raw.usa_cobb_douglas
+        WHERE series_id = 'CDT3S1'
+    ),
+    product_data AS (
+        SELECT period, value AS product
+        FROM raw.uscb
+        WHERE series_id = 'J0014'
     )
+
+    SELECT
+        capital_data.period,
+        capital_data.capital,
+        labor_data.labor,
+        product_data.product
+    FROM
+        capital_data
+    JOIN labor_data ON capital_data.period = labor_data.period
+    JOIN product_data ON capital_data.period = product_data.period
+    ORDER BY capital_data.period;
+    """
+
+    return fetch_data_from_duckdb(sql_query)
 
 
 def transform_cobb_douglas(
@@ -248,6 +211,7 @@ def plot_cobb_douglas(
     plt.title(mapping["fg_a"].format(*df.index[[0, -1]], mapping["year_base"]))
     plt.grid()
     plt.legend()
+
     plt.figure(2)
     plt.semilogy(
         df.iloc[:, [2, 9]],
@@ -265,6 +229,7 @@ def plot_cobb_douglas(
     plt.title(mapping["fg_b"].format(*df.index[[0, -1]], mapping["year_base"]))
     plt.grid()
     plt.legend()
+
     plt.figure(3)
     plt.plot(
         df.iloc[:, [8, 11]],
@@ -281,6 +246,7 @@ def plot_cobb_douglas(
     plt.title(mapping["fg_c"])
     plt.grid()
     plt.legend()
+
     plt.figure(4)
     plt.plot(df.iloc[:, 9].div(df.iloc[:, 2]).sub(1))
     plt.xlabel("Period")
@@ -302,6 +268,7 @@ def plot_cobb_douglas(
     plt.title(mapping["fg_e"])
     plt.grid()
     plt.legend()
+
     plt.show()
 
 
@@ -319,9 +286,12 @@ def get_fig_map(year_base: int = 1899) -> dict[str, str]:
 def main():
     YEAR_BASE = 1899
 
-    df, params = combine_cobb_douglas().pipe(
-        transform_cobb_douglas, year_base=YEAR_BASE
+    df, params = (
+        combine_cobb_douglas()
+        .set_index("period")
+        .pipe(transform_cobb_douglas, year_base=YEAR_BASE)
     )
+
     plot_cobb_douglas(df, params, get_fig_map(YEAR_BASE))
 
 

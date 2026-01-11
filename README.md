@@ -8,7 +8,7 @@ The project uses several datasets related to Cobb-Douglas production functions, 
 
 ## Key Features
 
-* **Extract**: The `Dataset` and `URL` enums allow extraction of data from various sources (local CSV files or URLs).
+* **Extract**: The `Dataset` enums allow extraction of data from various sources (local CSV files or URLs).
 * **Transform**: The core analysis is done using the Cobb-Douglas production function, including:
 
   * Capital-Labor intensity
@@ -67,7 +67,7 @@ This will:
 
 ## How It Works
 
-1. **Data Extraction**: The `Dataset` and `URL` enums define various datasets and URLs, with a function to load them into Pandas DataFrames.
+1. **Data Extraction**: The `Dataset` enums define various datasets and URLs, with a function to load them into Pandas DataFrames.
 2. **Data Transformation**: The `combine_cobb_douglas` function pulls data for the relevant economic variables (capital, labor, product) and prepares them for analysis.
 3. **Analysis**: The `transform_cobb_douglas` function performs calculations like:
 

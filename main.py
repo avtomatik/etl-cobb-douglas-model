@@ -1,159 +1,94 @@
-import io
 from dataclasses import dataclass
-from enum import Enum
-from functools import cache
-from http import HTTPStatus
-from pathlib import Path
-from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import requests
 
-BASE_DIR = Path(__file__).resolve().parent
-DATA_DIR = BASE_DIR / "data" / "raw"
+from core.data import duckdb_connection
 
-
-class Dataset(str, Enum):
-
-    def __new__(cls, value: str, usecols: range):
-        obj = str.__new__(cls)
-        obj._value_ = value
-        obj.usecols = usecols
-        return obj
-
-    DOUGLAS = "dataset_douglas.zip", range(4, 7)
-    USA_BROWN = "dataset_usa_brown.zip", range(5, 8)
-    USA_COBB_DOUGLAS = "dataset_usa_cobb-douglas.zip", range(5, 8)
-    USA_KENDRICK = "dataset_usa_kendrick.zip", range(4, 7)
-    USA_MC_CONNELL = "dataset_usa_mc_connell_brue.zip", range(1, 4)
-    USCB = "dataset_uscb.zip", range(9, 12)
-
-    def get_kwargs(self) -> dict[str, Any]:
-
-        NAMES = ["series_id", "period", "value"]
-
-        return {
-            "filepath_or_buffer": DATA_DIR / self.value,
-            "header": 0,
-            "names": NAMES,
-            "index_col": 1,
-            "skiprows": (0, 4)[self.name in ["USA_BROWN"]],
-            "usecols": self.usecols,
-        }
-
-
-class URL(Enum):
-    FIAS = (
-        "https://apps.bea.gov/national/FixedAssets/Release/TXT/FixedAssets.txt"
-    )
-    NIPA = "https://apps.bea.gov/national/Release/TXT/NipaDataA.txt"
-
-    def get_kwargs(self) -> dict[str, Any]:
-
-        NAMES = ["series_ids", "period", "value"]
-
-        kwargs = {
-            "header": 0,
-            "names": NAMES,
-            "index_col": 1,
-            "thousands": ",",
-        }
-        if requests.head(self.value).status_code == HTTPStatus.OK:
-            kwargs["filepath_or_buffer"] = io.BytesIO(
-                requests.get(self.value).content
-            )
-        else:
-            kwargs["filepath_or_buffer"] = self.value.split("/")[-1]
-        return kwargs
+DATASETS = {
+    "DOUGLAS": "douglas",
+    "USA_COBB_DOUGLAS": "usa_cobb_douglas",
+    "USCB": "uscb",
+}
 
 
 @dataclass(frozen=True, eq=True)
 class SeriesID:
     series_id: str
-    source: Dataset | URL
+    source: str
 
 
-@cache
+def fetch_data_from_duckdb(query: str) -> pd.DataFrame:
+    """
+    Fetch data from DuckDB using the provided SQL query and return a pandas DataFrame.
+
+    Parameters
+    ----------
+    query : str
+        The SQL query to fetch data from the DuckDB database.
+
+    Returns
+    -------
+    pd.DataFrame
+        The resulting data in a pandas DataFrame.
+    """
+    with duckdb_connection() as con:
+        df = con.execute(query).fetchdf()
+    return df
+
+
 def read_source(series_id: SeriesID) -> pd.DataFrame:
     """
-
+    Fetch data from DuckDB based on the SeriesID.
 
     Parameters
     ----------
     series_id : SeriesID
-        DESCRIPTION.
+        The SeriesID object that identifies the dataset to retrieve.
 
     Returns
     -------
-    DataFrame
-        ================== =================================
-        df.index           Period
-        df.iloc[:, 0]      Series IDs
-        df.iloc[:, 1]      Values
-        ================== =================================.
-
+    pd.DataFrame
+        The data for the given series.
     """
-    return pd.read_csv(**series_id.source.get_kwargs())
+    # Get the table name from the DATASETS dictionary
+    table_name = DATASETS[series_id.source]
 
+    # SQL query to fetch the relevant data from DuckDB
+    query = f"SELECT period, value FROM raw.{
+        table_name} WHERE series_id = '{series_id.series_id}'"
 
-def pull_by_series_id(df: pd.DataFrame, series_id: SeriesID) -> pd.DataFrame:
-    """
+    # Fetch data from DuckDB
+    df = fetch_data_from_duckdb(query)
 
+    # Ensure the dataframe has the expected columns
+    assert all(
+        col in df.columns for col in ["period", "value"]
+    ), "Data columns mismatch"
 
-    Parameters
-    ----------
-    df : DataFrame
-        ================== =================================
-        df.index           Period
-        df.iloc[:, 0]      Series IDs
-        df.iloc[:, 1]      Values
-        ================== =================================.
-    series_id : SeriesID
-        DESCRIPTION.
-
-    Returns
-    -------
-    DataFrame
-        ================== =================================
-        df.index           Period
-        df.iloc[:, 0]      Series
-        ================== =================================.
-
-    """
-    assert df.shape[1] == 2
-    return (
-        df[df.iloc[:, 0] == series_id.series_id]
-        .iloc[:, [1]]
-        .rename(columns={"value": series_id.series_id})
+    # Set 'period' as the index
+    return df.set_index("period").rename(
+        columns={"value": series_id.series_id}
     )
 
 
 def stockpile(series_ids: list[SeriesID]) -> pd.DataFrame:
     """
-
+    Aggregate data for a list of SeriesIDs from DuckDB.
 
     Parameters
     ----------
     series_ids : list[SeriesID]
-        DESCRIPTION.
+        List of SeriesID objects to retrieve data for.
 
     Returns
     -------
-    DataFrame
-        ================== =================================
-        df.index           Period
-        ...                ...
-        df.iloc[:, -1]     Values
-        ================== =================================.
-
+    pd.DataFrame
+        A combined DataFrame containing data for all SeriesIDs.
     """
-    return pd.concat(
-        map(lambda _: read_source(_).pipe(pull_by_series_id, _), series_ids),
-        axis=1,
-        sort=True,
-    )
+    dfs = [read_source(series_id) for series_id in series_ids]
+    return pd.concat(dfs, axis=1, sort=True)
 
 
 def combine_cobb_douglas(series_number: int = 3) -> pd.DataFrame:
@@ -184,23 +119,23 @@ def combine_cobb_douglas(series_number: int = 3) -> pd.DataFrame:
         # =====================================================================
         # C.W. Cobb, P.H. Douglas Capital Series: Total Fixed Capital in 1880 dollars (4)
         # =====================================================================
-        SeriesID("CDT2S4", Dataset.USA_COBB_DOUGLAS),
+        SeriesID("CDT2S4", "USA_COBB_DOUGLAS"),
         # =====================================================================
         # C.W. Cobb, P.H. Douglas Labor Series: Average Number Employed (in thousands)
         # =====================================================================
-        SeriesID("CDT3S1", Dataset.USA_COBB_DOUGLAS),
+        SeriesID("CDT3S1", "USA_COBB_DOUGLAS"),
         # =====================================================================
         # Bureau of the Census, 1949, Page 179, J14: Warren M. Persons, Index of Physical Production of Manufacturing
         # =====================================================================
-        SeriesID("J0014", Dataset.USCB),
+        SeriesID("J0014", "USCB"),
         # =====================================================================
         # Bureau of the Census, 1949, Page 179, J13: National Bureau of Economic Research Index of Physical Output, All Manufacturing Industries.
         # =====================================================================
-        SeriesID("J0013", Dataset.USCB),
+        SeriesID("J0013", "USCB"),
         # =====================================================================
         # The Revised Index of Physical Production for All Manufacturing In the United States, 1899--1926
         # =====================================================================
-        SeriesID("DT24AS01", Dataset.DOUGLAS),
+        SeriesID("DT24AS01", "DOUGLAS"),
     ]
     return (
         stockpile(SERIES_IDS)
@@ -383,14 +318,11 @@ def get_fig_map(year_base: int = 1899) -> dict[str, str]:
 
 def main():
     YEAR_BASE = 1899
-    df = (
-        combine_cobb_douglas()
-        .pipe(transform_cobb_douglas, year_base=YEAR_BASE)[0]
-        .iloc[:, range(5)]
-    )
 
-    _df, _params = df.pipe(transform_cobb_douglas, year_base=YEAR_BASE)
-    plot_cobb_douglas(_df, _params, get_fig_map(YEAR_BASE))
+    df, params = combine_cobb_douglas().pipe(
+        transform_cobb_douglas, year_base=YEAR_BASE
+    )
+    plot_cobb_douglas(df, params, get_fig_map(YEAR_BASE))
 
 
 if __name__ == "__main__":

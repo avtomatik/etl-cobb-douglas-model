@@ -1,0 +1,27 @@
+sources:
+  douglas:
+    path: data/raw/douglas.zip
+    format: zip_json
+    data_file: data.json.gz
+    columns:
+      - series_id
+      - period
+      - value
+
+  usa_cobb_douglas:
+    path: data/raw/usa_cobb-douglas.zip
+    format: zip_json
+    data_file: data.json.gz
+    columns:
+      - series_id
+      - period
+      - value
+
+  uscb:
+    path: data/raw/uscb.zip
+    format: zip_json
+    data_file: data.json.gz
+    columns:
+      - series_id
+      - period
+      - value

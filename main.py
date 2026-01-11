@@ -5,192 +5,155 @@ import pandas as pd
 from core.data import duckdb_connection
 
 
-def fetch_data_from_duckdb(query: str) -> pd.DataFrame:
+def fetch_dataframe(sql: str) -> pd.DataFrame:
     """
-    Fetch data from DuckDB using the provided SQL query and return a pandas DataFrame.
+    Execute a SQL query against DuckDB and return a DataFrame.
+    """
+    with duckdb_connection() as con:
+        return con.execute(sql).fetchdf()
+
+
+def load_cobb_douglas_inputs() -> pd.DataFrame:
+    """
+    Load capital, labor, and product series aligned by period.
+
+    Returns
+    -------
+    pd.DataFrame
+        Columns: [period, capital, labor, product]
+    """
+    sql = """
+    WITH
+        capital AS (
+            SELECT period, value AS capital
+            FROM raw.usa_cobb_douglas
+            WHERE series_id = 'CDT2S4'
+        ),
+        labor AS (
+            SELECT period, value AS labor
+            FROM raw.usa_cobb_douglas
+            WHERE series_id = 'CDT3S1'
+        ),
+        product AS (
+            SELECT period, value AS product
+            FROM raw.uscb
+            WHERE series_id = 'J0014'
+        )
+    SELECT
+        capital.period,
+        capital.capital,
+        labor.labor,
+        product.product
+    FROM capital
+    JOIN labor   USING (period)
+    JOIN product USING (period)
+    ORDER BY period;
+    """
+    return fetch_dataframe(sql)
+
+
+def estimate_cobb_douglas(
+    df: pd.DataFrame,
+    base_year: int,
+) -> tuple[pd.DataFrame, float, float]:
+    """
+    Normalize data, compute productivity metrics, and estimate
+    Cobb–Douglas parameters.
 
     Parameters
     ----------
-    query : str
-        The SQL query to fetch data from the DuckDB database.
+    df : DataFrame
+        Indexed by period with columns [capital, labor, product]
+    base_year : int
+        Normalization base year (index = 100)
 
     Returns
     -------
-    pd.DataFrame
-        The resulting data in a pandas DataFrame.
+    df : DataFrame
+        Enriched dataset
+    alpha : float
+        Capital elasticity (k)
+    scale : float
+        Total factor productivity (A)
     """
-    with duckdb_connection() as con:
-        df = con.execute(query).fetchdf()
-    return df
+    df = df.copy()
 
+    # =========================================================================
+    # Normalize indexes (base_year = 100)
+    # =========================================================================
+    df /= df.loc[base_year]
 
-def combine_cobb_douglas() -> pd.DataFrame:
-    """
-    Refactor the combine_cobb_douglas() function to use pure SQL for data combination.
-
-    Returns
-    -------
-    pd.DataFrame
-        DataFrame containing combined data for Capital, Labor, and Product.
-    """
-    sql_query = """
-    WITH capital_data AS (
-        SELECT period, value AS capital
-        FROM raw.usa_cobb_douglas
-        WHERE series_id = 'CDT2S4'
-    ),
-    labor_data AS (
-        SELECT period, value AS labor
-        FROM raw.usa_cobb_douglas
-        WHERE series_id = 'CDT3S1'
-    ),
-    product_data AS (
-        SELECT period, value AS product
-        FROM raw.uscb
-        WHERE series_id = 'J0014'
-    ),
-    product_nber_data AS (
-        SELECT period, value AS product_nber
-        FROM raw.uscb
-        WHERE series_id = 'J0013'
-    ),
-    product_rev_data AS (
-        SELECT period, value AS product_rev
-        FROM raw.douglas
-        WHERE series_id = 'DT24AS01'
-    )
-
-    SELECT
-        capital_data.period,
-        capital_data.capital,
-        labor_data.labor,
-        product_data.product,
-        product_nber_data.product_nber,
-        product_rev_data.product_rev
-    FROM
-        capital_data
-    JOIN labor_data ON capital_data.period = labor_data.period
-    JOIN product_data ON capital_data.period = product_data.period
-    LEFT JOIN product_nber_data ON capital_data.period = product_nber_data.period
-    LEFT JOIN product_rev_data ON capital_data.period = product_rev_data.period
-    ORDER BY capital_data.period;
-    """
-
-    sql_query = """
-    WITH capital_data AS (
-        SELECT period, value AS capital
-        FROM raw.usa_cobb_douglas
-        WHERE series_id = 'CDT2S4'
-    ),
-    labor_data AS (
-        SELECT period, value AS labor
-        FROM raw.usa_cobb_douglas
-        WHERE series_id = 'CDT3S1'
-    ),
-    product_data AS (
-        SELECT period, value AS product
-        FROM raw.uscb
-        WHERE series_id = 'J0014'
-    )
-
-    SELECT
-        capital_data.period,
-        capital_data.capital,
-        labor_data.labor,
-        product_data.product
-    FROM
-        capital_data
-    JOIN labor_data ON capital_data.period = labor_data.period
-    JOIN product_data ON capital_data.period = product_data.period
-    ORDER BY capital_data.period;
-    """
-
-    return fetch_data_from_duckdb(sql_query)
-
-
-def transform_cobb_douglas(
-    df: pd.DataFrame, year_base: int
-) -> tuple[pd.DataFrame, tuple[float]]:
-    """
-    ================== =================================
-    df.index           Period
-    df.iloc[:, 0]      Capital
-    df.iloc[:, 1]      Labor
-    df.iloc[:, 2]      Product
-    ================== =================================
-    """
-    df = df.div(df.loc[year_base, :])
     # =========================================================================
     # Labor Capital Intensity
     # =========================================================================
-    df["lab_cap_int"] = df.iloc[:, 0].div(df.iloc[:, 1])
+    df["capital_labor_ratio"] = df["capital"] / df["labor"]
     # =========================================================================
     # Labor Productivity
     # =========================================================================
-    df["lab_product"] = df.iloc[:, 2].div(df.iloc[:, 1])
+    df["labor_productivity"] = df["product"] / df["labor"]
     # =========================================================================
     # Original: k=0.25, b=1.01
     # =========================================================================
-    k, b = np.polyfit(
-        np.log(df.iloc[:, -2].astype(float)),
-        np.log(df.iloc[:, -1].astype(float)),
-        deg=1,
-    )
-    # =========================================================================
-    # Scipy Signal Median Filter, Non-Linear Low-Pass Filter
-    # =========================================================================
-    # =========================================================================
-    # k, b = np.polyfit(
-    #     np.log(signal.medfilt(df.iloc[:, -2])),
-    #     np.log(signal.medfilt(df.iloc[:, -1])),
-    #     deg=1
-    # )
-    # =========================================================================
+    x = np.log(df["capital_labor_ratio"].astype(float))
+    y = np.log(df["labor_productivity"].astype(float))
+
+    alpha, intercept = np.polyfit(x, y, deg=1)
+    scale = np.exp(intercept)
+
     # =========================================================================
     # Description
     # =========================================================================
-    df["cap_to_lab"] = df.iloc[:, 1].div(df.iloc[:, 0])
+    df["cap_to_lab"] = df["labor"] / df["capital"]
     # =========================================================================
     # Fixed Assets Turnover
     # =========================================================================
-    df["c_turnover"] = df.iloc[:, 2].div(df.iloc[:, 0])
+    df["capital_turnover"] = df["product"] / df["capital"]
     # =========================================================================
     # Product Trend Line=3 Year Moving Average
     # =========================================================================
-    df["prod_roll"] = df.iloc[:, 2].rolling(3, center=True).mean()
-    df["prod_roll_sub"] = df.iloc[:, 2].sub(df.iloc[:, -1])
+    df["product_trend"] = df["product"].rolling(3, center=True).mean()
+    df["product_gap"] = df["product"] - df["product_trend"]
     # =========================================================================
     # Computed Product
     # =========================================================================
-    df["prod_comp"] = (
-        df.iloc[:, 0].pow(k).mul(df.iloc[:, 1].pow(1 - k)).mul(np.exp(b))
+    df["product_model"] = (
+        scale * df["capital"] ** alpha * df["labor"] ** (1 - alpha)
     )
+    print(df.columns)
+
     # =========================================================================
     # Computed Product Trend Line=3 Year Moving Average
     # =========================================================================
-    df["prod_comp_roll"] = df.iloc[:, -1].rolling(3, center=True).mean()
-    df["prod_comp_roll_sub"] = df.iloc[:, -2].sub(df.iloc[:, -1])
+    df["product_model_trend"] = (
+        df["product_model"].rolling(3, center=True).mean()
+    )
+    df["product_model_gap"] = df["product_model"] - df["product_model_trend"]
     # =========================================================================
-    #     print(f"R**2: {r2_score(df.iloc[:, 2], df.iloc[:, 3]):,.4f}")
-    #     print(df.iloc[:, 3].div(df.iloc[:, 2]).sub(1).abs().mean())
+    #     print(f"R**2: {r2_score(df["product"], df["product_model"]):,.4f}")
+    #     print(df["product_model"].div(df["product"]).sub(1).abs().mean())
     # =========================================================================
-    return df, (k, np.exp(b))
+    return df, alpha, scale
 
 
-def lab_productivity(
-    array: np.array, k: float = 0.25, b: float = 1.01
-) -> np.array:
-    return np.multiply(np.power(array, -k), b)
+def labor_productivity_curve(
+    lc_ratio: np.ndarray, alpha: float, scale: float
+) -> np.ndarray:
+    """P/L as a function of L/C."""
+    return scale * lc_ratio ** (-alpha)
 
 
-def cap_productivity(
-    array: np.array, k: float = 0.25, b: float = 1.01
-) -> np.array:
-    return np.multiply(np.power(array, 1 - k), b)
+def capital_productivity_curve(
+    lc_ratio: np.ndarray, alpha: float, scale: float
+) -> np.ndarray:
+    """P/C as a function of L/C."""
+    return scale * lc_ratio ** (1 - alpha)
 
 
 def plot_cobb_douglas(
-    df: pd.DataFrame, params: tuple[float], mapping: dict
+    df: pd.DataFrame,
+    alpha: float,
+    scale: float,
+    labels: dict[str, str],
 ) -> None:
     """
     Cobb--Douglas Algorithm as per C.W. Cobb, P.H. Douglas. A Theory of Production, 1928;
@@ -208,7 +171,7 @@ def plot_cobb_douglas(
     )
     plt.xlabel("Period")
     plt.ylabel("Indexes")
-    plt.title(mapping["fg_a"].format(*df.index[[0, -1]], mapping["year_base"]))
+    plt.title(labels["chart_inputs"].format(*df.index[[0, -1]], 1899))
     plt.grid()
     plt.legend()
 
@@ -218,15 +181,15 @@ def plot_cobb_douglas(
         label=[
             "Actual Product",
             "Computed Product, $P' = {:,.4f}L^{{{:,.4f}}}C^{{{:,.4f}}}$".format(
-                params[1],
-                1 - params[0],
-                params[0],
+                scale,
+                1 - alpha,
+                alpha,
             ),
         ],
     )
     plt.xlabel("Period")
     plt.ylabel("Production")
-    plt.title(mapping["fg_b"].format(*df.index[[0, -1]], mapping["year_base"]))
+    plt.title(labels["chart_actual_vs_model"].format(*df.index[[0, -1]], 1899))
     plt.grid()
     plt.legend()
 
@@ -243,56 +206,63 @@ def plot_cobb_douglas(
     )
     plt.xlabel("Period")
     plt.ylabel("Percentage Deviation")
-    plt.title(mapping["fg_c"])
+    plt.title(labels["chart_gaps"])
     plt.grid()
     plt.legend()
 
     plt.figure(4)
-    plt.plot(df.iloc[:, 9].div(df.iloc[:, 2]).sub(1))
+    plt.plot(df.iloc[:, 9].div(df["product"]).sub(1))
     plt.xlabel("Period")
     plt.ylabel("Percentage Deviation")
-    plt.title(mapping["fg_d"].format(*df.index[[0, -1]]))
+    plt.title(labels["chart_relative_error"].format(*df.index[[0, -1]]))
     plt.grid()
+
     plt.figure(5, figsize=(5, 8))
     plt.scatter(df.iloc[:, 5], df.iloc[:, 4])
     plt.scatter(df.iloc[:, 5], df.iloc[:, 6])
     lc = np.arange(0.2, 1.0, 0.005)
     plt.plot(
-        lc, lab_productivity(lc, *params), label="$\\frac{3}{4}\\frac{P}{L}$"
+        lc,
+        labor_productivity_curve(lc, alpha, scale),
+        label="$\\frac{3}{4}\\frac{P}{L}$",
     )
     plt.plot(
-        lc, cap_productivity(lc, *params), label="$\\frac{1}{4}\\frac{P}{C}$"
+        lc,
+        capital_productivity_curve(lc, alpha, scale),
+        label="$\\frac{1}{4}\\frac{P}{C}$",
     )
     plt.xlabel("$\\frac{L}{C}$")
     plt.ylabel("Indexes")
-    plt.title(mapping["fg_e"])
+    plt.title(labels["chart_productivities"])
     plt.grid()
     plt.legend()
 
     plt.show()
 
 
-def get_fig_map(year_base: int = 1899) -> dict[str, str]:
+def figure_labels(base_year: int = 1899) -> dict[str, str]:
     return {
-        "fg_a": f"Chart I Progress in Manufacturing {{}}$-${{}} ({year_base}=100)",
-        "fg_b": f"Chart II Theoretical and Actual Curves of Production {{}}$-${{}} ({year_base}=100)",
-        "fg_c": "Chart III Percentage Deviations of $P$ and $P'$ from Their Trend Lines\nTrend Lines=3 Year Moving Average",
-        "fg_d": "Chart IV Percentage Deviations of Computed from Actual Product {}$-${}",
-        "fg_e": "Chart V Relative Final Productivities of Labor and Capital",
-        "year_base": year_base,
+        "chart_inputs": f"Chart I Progress in Manufacturing {{}}$-${{}} ({base_year}=100)",
+        "chart_actual_vs_model": f"Chart II Theoretical and Actual Curves of Production {{}}$-${{}} ({base_year}=100)",
+        "chart_gaps": "Chart III Percentage Deviations of $P$ and $P'$ from Their Trend Lines\nTrend Lines=3 Year Moving Average",
+        "chart_relative_error": "Chart IV Percentage Deviations of Computed from Actual Product {}$-${}",
+        "chart_productivities": "Chart V Relative Final Productivities of Labor and Capital",
     }
 
 
-def main():
-    YEAR_BASE = 1899
+def main() -> None:
+    BASE_YEAR = 1899
 
-    df, params = (
-        combine_cobb_douglas()
-        .set_index("period")
-        .pipe(transform_cobb_douglas, year_base=YEAR_BASE)
+    df = load_cobb_douglas_inputs().set_index("period")
+
+    df, alpha, scale = estimate_cobb_douglas(df, base_year=BASE_YEAR)
+
+    plot_cobb_douglas(
+        df,
+        alpha,
+        scale,
+        figure_labels(BASE_YEAR),
     )
-
-    plot_cobb_douglas(df, params, get_fig_map(YEAR_BASE))
 
 
 if __name__ == "__main__":

@@ -52,6 +52,16 @@ def load_cobb_douglas_inputs() -> pd.DataFrame:
     return fetch_dataframe(sql)
 
 
+def estimate_cobb_douglas_ols(df: pd.DataFrame) -> tuple[float, float]:
+    x = np.log(df["labor_capital_intensity"].astype(float))
+    y = np.log(df["labor_productivity"].astype(float))
+
+    alpha, intercept = np.polyfit(x, y, deg=1)
+    scale = np.exp(intercept)
+
+    return alpha, scale
+
+
 def estimate_cobb_douglas(
     df: pd.DataFrame,
     base_year: int,
@@ -84,53 +94,30 @@ def estimate_cobb_douglas(
     df /= df.loc[base_year]
 
     # =========================================================================
-    # Labor Capital Intensity
+    # Compute ratios and productivities
     # =========================================================================
-    df["capital_labor_ratio"] = df["capital"] / df["labor"]
-    # =========================================================================
-    # Labor Productivity
-    # =========================================================================
+    df["labor_capital_intensity"] = df["capital"] / df["labor"]
     df["labor_productivity"] = df["product"] / df["labor"]
-    # =========================================================================
-    # Original: k=0.25, b=1.01
-    # =========================================================================
-    x = np.log(df["capital_labor_ratio"].astype(float))
-    y = np.log(df["labor_productivity"].astype(float))
-
-    alpha, intercept = np.polyfit(x, y, deg=1)
-    scale = np.exp(intercept)
 
     # =========================================================================
-    # Description
+    # Additional calculated metrics
     # =========================================================================
-    df["cap_to_lab"] = df["labor"] / df["capital"]
-    # =========================================================================
-    # Fixed Assets Turnover
-    # =========================================================================
+    df["capital_labor_ratio"] = df["labor"] / df["capital"]
     df["capital_turnover"] = df["product"] / df["capital"]
-    # =========================================================================
-    # Product Trend Line=3 Year Moving Average
-    # =========================================================================
     df["product_trend"] = df["product"].rolling(3, center=True).mean()
     df["product_gap"] = df["product"] - df["product_trend"]
-    # =========================================================================
-    # Computed Product
-    # =========================================================================
+
+    alpha, scale = estimate_cobb_douglas_ols(df)
+
     df["product_model"] = (
         scale * df["capital"] ** alpha * df["labor"] ** (1 - alpha)
     )
-
-    # =========================================================================
-    # Computed Product Trend Line=3 Year Moving Average
-    # =========================================================================
     df["product_model_trend"] = (
         df["product_model"].rolling(3, center=True).mean()
     )
     df["product_model_gap"] = df["product_model"] - df["product_model_trend"]
-    # =========================================================================
-    #     print(f"R**2: {r2_score(df["product"], df["product_model"]):,.4f}")
-    #     print(df["product_model"].div(df["product"]).sub(1).abs().mean())
-    # =========================================================================
+    df["product_model_error"] = df["product_model"] / df["product"] - 1
+
     return df, alpha, scale
 
 
@@ -168,7 +155,7 @@ def plot_cobb_douglas(
     """
     Cobb--Douglas Algorithm as per C.W. Cobb, P.H. Douglas. A Theory of Production, 1928;
     """
-    assert df.shape[1] == 12
+    assert df.shape[1] == 13, "Input df: pd.DataFrame shall have 13 columns."
 
     start, end = df.index[[0, -1]]
 
@@ -179,12 +166,8 @@ def plot_cobb_douglas(
 
     plt.figure(1)
     plt.semilogy(
-        df.iloc[:, range(3)],
-        label=[
-            "Fixed Capital",
-            "Labor Force",
-            "Physical Product",
-        ],
+        df[["capital", "labor", "product"]],
+        label=["Fixed Capital", "Labor Force", "Physical Product"],
     )
     plt.xlabel("Period")
     plt.ylabel("Indexes")
@@ -194,13 +177,12 @@ def plot_cobb_douglas(
 
     plt.figure(2)
     plt.semilogy(
-        df.iloc[:, [2, 9]],
+        df[["product", "product_model"]],
         label=[
             "Actual Product",
-            "Computed Product, $P' = {:,.4f}L^{{{:,.4f}}}C^{{{:,.4f}}}$".format(
-                scale,
-                1 - alpha,
-                alpha,
+            (
+                f"Computed Product, "
+                f"$P' = {scale:,.4f}L^{{{1 - alpha:,.4f}}}C^{{{alpha:,.4f}}}$"
             ),
         ],
     )
@@ -212,14 +194,14 @@ def plot_cobb_douglas(
 
     plt.figure(3)
     plt.plot(
-        df.iloc[:, [8, 11]],
-        label=[
-            "Deviations of $P$",
-            "Deviations of $P'$",
-            # =================================================================
-            # TODO: ls=['solid','dashed',]
-            # =================================================================
-        ],
+        df["product_gap"],
+        label="Deviations of $P$",
+        linestyle="-",
+    )
+    plt.plot(
+        df["product_model_gap"],
+        label="Deviations of $P'$",
+        linestyle="--",
     )
     plt.xlabel("Period")
     plt.ylabel("Percentage Deviation")
@@ -228,27 +210,50 @@ def plot_cobb_douglas(
     plt.legend()
 
     plt.figure(4)
-    plt.plot(df.iloc[:, 9].div(df["product"]).sub(1))
+    plt.plot(df["product_model_error"])
     plt.xlabel("Period")
     plt.ylabel("Percentage Deviation")
     plt.title(formatted_labels["chart_relative_error"])
     plt.grid()
 
     plt.figure(5, figsize=(5, 8))
-    plt.scatter(df.iloc[:, 5], df.iloc[:, 4])
-    plt.scatter(df.iloc[:, 5], df.iloc[:, 6])
-    lc = np.arange(0.2, 1.0, 0.005)
-    plt.plot(
-        lc,
-        labor_productivity_curve(lc, alpha, scale),
-        label="$\\frac{3}{4}\\frac{P}{L}$",
+
+    # =========================================================================
+    # Observed productivities
+    # =========================================================================
+    plt.scatter(
+        df["capital_labor_ratio"],
+        df["labor_productivity"],
+        alpha=0.7,
     )
-    plt.plot(
-        lc,
-        capital_productivity_curve(lc, alpha, scale),
-        label="$\\frac{1}{4}\\frac{P}{C}$",
+
+    plt.scatter(
+        df["capital_labor_ratio"],
+        df["capital_turnover"],
+        alpha=0.7,
     )
-    plt.xlabel("$\\frac{L}{C}$")
+
+    # =========================================================================
+    # Theoretical Cobb–Douglas curves
+    # =========================================================================
+    lc_grid = np.arange(0.2, 1.0, 0.005)
+
+    plt.plot(
+        lc_grid,
+        labor_productivity_curve(lc_grid, alpha, scale),
+        label=r"$\frac{3}{4} \frac{P}{L}$",
+    )
+
+    plt.plot(
+        lc_grid,
+        capital_productivity_curve(lc_grid, alpha, scale),
+        label=r"$\frac{1}{4} \frac{P}{C}$",
+    )
+
+    # =========================================================================
+    # Cosmetics
+    # =========================================================================
+    plt.xlabel(r"$\frac{L}{C}$")
     plt.ylabel("Indexes")
     plt.title(formatted_labels["chart_productivities"])
     plt.grid()

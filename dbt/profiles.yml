@@ -1,0 +1,7 @@
+cobb_douglas:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: data/processed/cobb_douglas.duckdb
+      threads: 1

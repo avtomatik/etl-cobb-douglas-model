@@ -1,0 +1,51 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    description: >
+      Raw time series data ingested from zipped JSON sources.
+      One table per source dataset, loaded verbatim by ingest/main.py.
+
+    tables:
+      - name: usa_cobb_douglas
+        description: >
+          U.S. Cobb–Douglas manufacturing series as used by Cobb & Douglas (1928).
+        columns:
+          - name: series_id
+            description: Series identifier
+          - name: period
+            description: Observation year
+          - name: value
+            description: Reported value
+        tests:
+          - dbt_utils.unique_combination_of_columns:
+              arguments:
+                combination_of_columns: [series_id, period]
+
+      - name: uscb
+        description: >
+          U.S. Census Bureau production series.
+        columns:
+          - name: series_id
+            description: Series identifier
+          - name: period
+            description: Observation year
+          - name: value
+            description: Reported value
+        tests:
+          - dbt_utils.unique_combination_of_columns:
+              arguments:
+                combination_of_columns: [series_id, period]
+
+      - name: douglas
+        description: >
+          Original Douglas dataset (historical reference / robustness checks).
+        columns:
+          - name: series_id
+          - name: period
+          - name: value
+        tests:
+          - dbt_utils.unique_combination_of_columns:
+              arguments:
+                combination_of_columns: [series_id, period]

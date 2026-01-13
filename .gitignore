@@ -125,3 +125,8 @@ dmypy.json
 
 # DuckDB
 *.duckdb
+
+# dbt
+.user.yml
+package-lock.yml
+dbt_packages/

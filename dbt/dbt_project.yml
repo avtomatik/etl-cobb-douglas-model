@@ -1,0 +1,20 @@
+name: cobb_douglas
+version: 1.0
+profile: cobb_douglas
+
+vars:
+  base_year: 1899  # default base year value
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+
+models:
+  cobb_douglas:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: view
+    marts:
+      +materialized: view
+
+    +threads: 1

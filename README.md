@@ -1,38 +1,34 @@
 # ETL Cobb-Douglas Model
 
-This project implements an ETL (Extract, Transform, Load) pipeline for processing economic datasets and analyzing them using a Cobb-Douglas production function. The goal is to transform and visualize various economic data, particularly focusing on capital, labor, and product information for different economic datasets.
-
-## Datasets
-
-The project uses several datasets related to Cobb-Douglas production functions, including datasets for historical U.S. economic data such as capital, labor, and physical product series.
+This project implements an ETL (Extract, Transform, Load) pipeline for processing economic datasets and analyzing them using the Cobb-Douglas production function. The main goal is to transform and visualize various economic data, particularly focusing on capital, labor, and product information, for different economies and periods. The visualizations generated closely follow the plots presented in C.W. Cobb and P.H. Douglas's 1928 paper, "A Theory of Production."
 
 ## Key Features
 
-* **Extract**: The `Dataset` enums allow extraction of data from various sources (local CSV files or URLs).
-* **Transform**: The core analysis is done using the Cobb-Douglas production function, including:
+* **Ingest**: Loads raw economic data into a DuckDB warehouse.
+* **Transform**: Uses DBT for transforming the data according to the Cobb-Douglas production function.
+* **Visualize**: Generates plots that match the ones presented in Cobb and Douglas's 1928 paper.
 
-  * Capital-Labor intensity
-  * Labor productivity
-  * Fixed Assets Turnover
-  * Product trend lines (moving averages)
-* **Visualize**: Generates various visualizations such as charts for actual vs computed product, deviations, and relative productivities.
+## Datasets
+
+The project uses several datasets related to the Cobb-Douglas production function, such as historical U.S. economic data (capital, labor, and physical product series). The project is flexible enough to accept additional datasets for other economies and time periods, which will be added in the future.
 
 ## Requirements
 
 * Python 3.12 or later
 * Required Python packages:
 
-  * `matplotlib`
-  * `numpy`
-  * `pandas`
-  * `requests`
+  * `dbt-duckdb>=1.10.0`
+  * `duckdb>=1.4.3`
+  * `matplotlib>=3.10.8`
+  * `pandas>=2.3.3`
+  * `pyyaml>=6.0.3`
 
 ## Setup
 
 1. Clone the repository:
 
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/avtomatik/etl-cobb-douglas-model.git
    cd etl-cobb-douglas-model
    ```
 
@@ -49,56 +45,99 @@ The project uses several datasets related to Cobb-Douglas production functions, 
    uv sync
    ```
 
-4. Ensure your data is in the correct folder (`data/raw/`). The data files should be `.zip` files as indicated by the dataset names in the code.
+4. Ensure your data is in the correct folder (`data/raw/`). The data files should be `.zip` files as indicated by the dataset names in the `sources.yml`.
 
 ## Usage
 
-To run the project, use the following command:
+### Ingest Data into DuckDB Warehouse
+
+To ingest data into your DuckDB warehouse, run the following command:
 
 ```bash
-uv run python main.py
+uv run python -m ingest.main
 ```
 
 This will:
 
-* Load the datasets defined in the `combine_cobb_douglas()` function.
-* Perform the transformation (e.g., calculating labor and capital productivity).
-* Generate visualizations comparing actual vs theoretical production curves, deviations, and relative productivity of labor and capital.
+* Load the raw data from the `.zip` files located in the `data/raw/` directory.
+* Store the data into a DuckDB warehouse under the `raw` schema.
 
-## How It Works
+### Transformation with DBT
 
-1. **Data Extraction**: The `Dataset` enums define various datasets and URLs, with a function to load them into Pandas DataFrames.
-2. **Data Transformation**: The `combine_cobb_douglas` function pulls data for the relevant economic variables (capital, labor, product) and prepares them for analysis.
-3. **Analysis**: The `transform_cobb_douglas` function performs calculations like:
+To transform the raw data using DBT and the Cobb-Douglas production function, run:
 
-   * Labor-Capital intensity
-   * Labor productivity
-   * Fixed assets turnover
-   * Computed vs actual product comparisons
-4. **Visualization**: The `plot_cobb_douglas` function generates several plots, including:
+```bash
+dbt run --profiles-dir dbt --project-dir dbt
+```
 
-   * Progress in manufacturing over time
-   * Theoretical vs actual curves of production
-   * Deviations of actual product from trend lines
-   * Relative productivities of labor and capital
+This will:
+
+* Transform the raw data into intermediate, staging, and final tables according to the Cobb-Douglas production function and other relevant calculations.
+* The transformations are defined in the `dbt/models/` directory.
+
+### Visualize Results
+
+To visualize the results, run the following command in **Spyder** (or another interactive environment that supports matplotlib visualization):
+
+```bash
+python viz/run_all.py
+```
+
+This will:
+
+* Generate the plots as presented in Cobb and Douglas’s 1928 paper.
+* Note: Plots are not displayed when running `uv run python -m viz.run_all` due to non-interactive backend limitations (e.g., `FigureCanvasAgg`). It is recommended to run the visualizations in Spyder or another IDE with an interactive plot window.
+
+### Future Plans
+
+* The project will be extended to support additional datasets for other economies and periods.
+* A potential future enhancement could involve switching to a platform like Apache Superset for better interactive visualization capabilities, but this will be a future task.
 
 ## Folder Structure
+
 
 ```plaintext
 etl-cobb-douglas-model/
 │
-├── data/
-│   └── raw/          # Folder for raw dataset files
+├── core/               # Core configuration and data handling
+│   ├── config.py       # Configuration settings
+│   └── data.py         # Data handling functions
 │
-├── .venv/            # Python virtual environment
+├── data/               # Data storage and configuration
+│   ├── processed/      # Processed data (e.g., intermediate results)
+│   ├── raw/            # Raw data (e.g., .zip files)
+│   └── sources.yml     # Source configurations (paths, columns, etc.)
 │
-├── main.py           # Main script to run the ETL and analysis
+├── dbt/                # DBT project for data transformations
+│   ├── dbt_project.yml # DBT project settings
+│   ├── models/         # DBT models (SQL transformations)
+│   │   ├── intermediate/
+│   │   │   ├── int_inputs.sql
+│   │   │   ├── int_normalized_data.sql
+│   │   │   └── int_productivity_metrics.sql
+│   │   ├── marts/
+│   │   │   ├── cobb_douglas_estimates.sql
+│   │   │   └── cobb_douglas_series.sql
+│   │   ├── sources.yml # DBT source configurations
+│   │   └── staging/
+│   │       ├── stg_usa_cobb_douglas.sql
+│   │       └── stg_uscb.sql
+│   └── profiles.yml    # DBT profiles for connection settings
 │
-└── README.md         # This README file
+├── ingest/             # Data ingestion scripts
+│   └── main.py         # Main ingestion script
+│
+├── LICENSE.md          # Project license
+├── pyproject.toml      # Python project settings
+├── README.md           # This README file
+├── uv.lock             # uvicorn lock file
+└── viz/                # Visualization scripts
+    ├── plot.py         # Plotting functions
+    └── run_all.py      # Script to run all visualizations
 ```
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details.
 
 ---

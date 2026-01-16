@@ -1,0 +1,15 @@
+PLOT_CONTRACT_COLUMNS = {
+    "capital_norm",
+    "labor_norm",
+    "product_norm",
+    "labor_capital_intensity",
+    "labor_productivity",
+    "capital_labor_ratio",
+    "capital_turnover",
+    "product_trend",
+    "product_gap",
+    "product_model",
+    "product_model_trend",
+    "product_model_gap",
+    "product_model_error",
+}

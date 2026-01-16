@@ -2,8 +2,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+from viz.constants import PLOT_CONTRACT_COLUMNS
+from viz.model import capital_productivity_curve, labor_productivity_curve
+from viz.validation import validate_columns
 
-def figure_labels() -> dict[str, str]:
+
+def get_figure_labels() -> dict[str, str]:
+    """
+    Returns the labels for the various charts in the plot.
+    """
     return {
         "chart_inputs": "Chart I Progress in Manufacturing {start}$-${end} ({base_year}=100)",
         "chart_actual_vs_model": "Chart II Theoretical and Actual Curves of Production {start}$-${end} ({base_year}=100)",
@@ -13,20 +20,6 @@ def figure_labels() -> dict[str, str]:
     }
 
 
-def labor_productivity_curve(
-    lc_ratio: np.ndarray, alpha: float, scale: float
-) -> np.ndarray:
-    """P/L as a function of L/C."""
-    return scale * lc_ratio ** (-alpha)
-
-
-def capital_productivity_curve(
-    lc_ratio: np.ndarray, alpha: float, scale: float
-) -> np.ndarray:
-    """P/C as a function of L/C."""
-    return scale * lc_ratio ** (1 - alpha)
-
-
 def plot_cobb_douglas(
     df: pd.DataFrame,
     alpha: float,
@@ -34,29 +27,19 @@ def plot_cobb_douglas(
     labels: dict[str, str] | None = None,
 ) -> None:
     """
-    Cobb--Douglas Algorithm as per C.W. Cobb, P.H. Douglas. A Theory of Production, 1928;
-    """
-    PLOT_CONTRACT_COLUMNS = {
-        "capital_norm",
-        "labor_norm",
-        "product_norm",
-        "labor_capital_intensity",
-        "labor_productivity",
-        "capital_labor_ratio",
-        "capital_turnover",
-        "product_trend",
-        "product_gap",
-        "product_model",
-        "product_model_trend",
-        "product_model_gap",
-        "product_model_error",
-    }
+    Generate plots based on the Cobb-Douglas production function and observed data.
 
-    missing = PLOT_CONTRACT_COLUMNS - set(df.columns)
-    assert not missing, f"Plot contract violated. Missing columns: {missing}"
+    Parameters:
+    df (pd.DataFrame): Dataframe containing the observed data
+    alpha (float): Cobb-Douglas exponent for labor
+    scale (float): Scaling factor
+    labels (dict, optional): Custom chart labels
+    """
+
+    validate_columns(df, PLOT_CONTRACT_COLUMNS)
 
     if labels is None:
-        labels = figure_labels()
+        labels = get_figure_labels()
 
     start, end = df["period"].iloc[[0, -1]]
 
@@ -65,99 +48,80 @@ def plot_cobb_douglas(
         for key, value in labels.items()
     }
 
-    plt.figure(1)
-    plt.semilogy(
-        df[["capital_norm", "labor_norm", "product_norm"]],
-        label=["Fixed Capital", "Labor Force", "Physical Product"],
-    )
-    plt.xlabel("Period")
-    plt.ylabel("Indexes")
-    plt.title(formatted_labels["chart_inputs"])
-    plt.grid()
-    plt.legend()
+    # Create the first figure: Inputs over time
+    fig, ax = plt.subplots()
+    ax.semilogy(df[["capital_norm", "labor_norm", "product_norm"]])
+    ax.set_xlabel("Period")
+    ax.set_ylabel("Indexes")
+    ax.set_title(formatted_labels["chart_inputs"])
+    ax.grid(True)
+    ax.legend(["Fixed Capital", "Labor Force", "Physical Product"])
 
-    plt.figure(2)
-    plt.semilogy(
-        df[["product_norm", "product_model"]],
-        label=[
+    # Create the second figure: Actual vs Model Production
+    fig, ax = plt.subplots()
+    ax.semilogy(df[["product_norm", "product_model"]])
+    ax.set_xlabel("Period")
+    ax.set_ylabel("Production")
+    ax.set_title(formatted_labels["chart_actual_vs_model"])
+    ax.grid(True)
+    ax.legend(
+        [
             "Actual Product",
-            (
-                f"Computed Product, "
-                f"$P' = {scale:,.4f}L^{{{1 - alpha:,.4f}}}C^{{{alpha:,.4f}}}$"
-            ),
-        ],
+            f"Computed Product, $P' = {scale:,.4f}L^{{{1 - alpha:,.4f}}}C^{{{alpha:,.4f}}}$",
+        ]
     )
-    plt.xlabel("Period")
-    plt.ylabel("Production")
-    plt.title(formatted_labels["chart_actual_vs_model"])
-    plt.grid()
-    plt.legend()
 
-    plt.figure(3)
-    plt.plot(
-        df["product_gap"],
-        label="Deviations of $P$",
-        linestyle="-",
+    # Create the third figure: Gaps in Product vs Model
+    fig, ax = plt.subplots()
+    ax.plot(df["product_gap"], label="Deviations of $P$", linestyle="-")
+    ax.plot(
+        df["product_model_gap"], label="Deviations of $P'$", linestyle="--"
     )
-    plt.plot(
-        df["product_model_gap"],
-        label="Deviations of $P'$",
-        linestyle="--",
-    )
-    plt.xlabel("Period")
-    plt.ylabel("Percentage Deviation")
-    plt.title(formatted_labels["chart_gaps"])
-    plt.grid()
-    plt.legend()
+    ax.set_xlabel("Period")
+    ax.set_ylabel("Percentage Deviation")
+    ax.set_title(formatted_labels["chart_gaps"])
+    ax.grid(True)
+    ax.legend()
 
-    plt.figure(4)
-    plt.plot(df["product_model_error"])
-    plt.xlabel("Period")
-    plt.ylabel("Percentage Deviation")
-    plt.title(formatted_labels["chart_relative_error"])
-    plt.grid()
+    # Create the fourth figure: Relative error in product model
+    fig, ax = plt.subplots()
+    ax.plot(df["product_model_error"])
+    ax.set_xlabel("Period")
+    ax.set_ylabel("Percentage Deviation")
+    ax.set_title(formatted_labels["chart_relative_error"])
+    ax.grid(True)
 
-    plt.figure(5, figsize=(5, 8))
-
-    # =========================================================================
-    # Observed productivities
-    # =========================================================================
-    plt.scatter(
+    # Create the fifth figure: Productivities and Cobb-Douglas curves
+    fig, ax = plt.subplots(figsize=(5, 8))
+    ax.scatter(
         df["capital_labor_ratio"],
         df["labor_productivity"],
         alpha=0.7,
+        label="Labor Productivity",
     )
-
-    plt.scatter(
+    ax.scatter(
         df["capital_labor_ratio"],
         df["capital_turnover"],
         alpha=0.7,
+        label="Capital Turnover",
     )
 
-    # =========================================================================
-    # Theoretical Cobb–Douglas curves
-    # =========================================================================
     lc_grid = np.arange(0.2, 1.0, 0.005)
-
-    plt.plot(
+    ax.plot(
         lc_grid,
         labor_productivity_curve(lc_grid, alpha, scale),
         label=r"$\frac{3}{4} \frac{P}{L}$",
     )
-
-    plt.plot(
+    ax.plot(
         lc_grid,
         capital_productivity_curve(lc_grid, alpha, scale),
         label=r"$\frac{1}{4} \frac{P}{C}$",
     )
 
-    # =========================================================================
-    # Cosmetics
-    # =========================================================================
-    plt.xlabel(r"$\frac{L}{C}$")
-    plt.ylabel("Indexes")
-    plt.title(formatted_labels["chart_productivities"])
-    plt.grid()
-    plt.legend()
+    ax.set_xlabel(r"$\frac{L}{C}$")
+    ax.set_ylabel("Indexes")
+    ax.set_title(formatted_labels["chart_productivities"])
+    ax.grid(True)
+    ax.legend()
 
     plt.show()

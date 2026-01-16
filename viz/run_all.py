@@ -1,4 +1,5 @@
 from core.data import duckdb_connection
+
 from viz.plot import plot_cobb_douglas
 
 

@@ -2,9 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from viz.constants import PLOT_CONTRACT_COLUMNS
 from viz.model import capital_productivity_curve, labor_productivity_curve
-from viz.validation import validate_columns
 
 
 def get_figure_labels() -> dict[str, str]:
@@ -35,8 +33,6 @@ def plot_cobb_douglas(
     scale (float): Scaling factor
     labels (dict, optional): Custom chart labels
     """
-
-    validate_columns(df, PLOT_CONTRACT_COLUMNS)
 
     if labels is None:
         labels = get_figure_labels()

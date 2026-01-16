@@ -3,7 +3,44 @@ version: 1.0
 profile: cobb_douglas
 
 vars:
-  base_year: 1899  # default base year value
+  active_cobb_douglas_spec: usa_baseline
+
+  cobb_douglas_specs:
+    usa_baseline:
+      base_year: 1899
+      capital:
+        model: stg_usa_cobb_douglas
+        series_id: CDT2S4
+      labor:
+        model: stg_usa_cobb_douglas
+        series_id: CDT3S1
+      product:
+        model: stg_uscb
+        series_id: J0014
+
+    historical_nber:
+      base_year: 1899
+      capital:
+        model: stg_usa_cobb_douglas
+        series_id: CDT2S4
+      labor:
+        model: stg_usa_cobb_douglas
+        series_id: CDT3S1
+      product:
+        model: stg_uscb
+        series_id: J0013
+
+    historical_douglas:
+      base_year: 1899
+      capital:
+        model: stg_usa_cobb_douglas
+        series_id: CDT2S4
+      labor:
+        model: stg_usa_cobb_douglas
+        series_id: CDT3S1
+      product:
+        model: stg_douglas
+        series_id: DT24AS01
 
 model-paths: ["models"]
 macro-paths: ["macros"]

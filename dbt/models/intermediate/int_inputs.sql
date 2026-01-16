@@ -1,35 +1,42 @@
+{% set spec_name = var('active_cobb_douglas_spec') %}
+{% set spec = var('cobb_douglas_specs')[spec_name] %}
+{% set base_year = spec.base_year %}
+
 WITH capital AS (
     SELECT
         period,
         value AS capital
     FROM
-        {{ ref('stg_usa_cobb_douglas') }}
+        {{ ref(spec.capital.model) }}
     WHERE
-        series_id = 'CDT2S4'
+        series_id = '{{ spec.capital.series_id }}'
 ),
+
 labor AS (
     SELECT
         period,
         value AS labor
     FROM
-        {{ ref('stg_usa_cobb_douglas') }}
+        {{ ref(spec.labor.model) }}
     WHERE
-        series_id = 'CDT3S1'
+        series_id = '{{ spec.labor.series_id }}'
 ),
+
 product AS (
     SELECT
         period,
         value AS product
     FROM
-        {{ ref('stg_uscb') }}
+        {{ ref(spec.product.model) }}
     WHERE
-        series_id = 'J0014'
+        series_id = '{{ spec.product.series_id }}'
 )
+
 SELECT
     capital.period,
-    capital,
-    labor,
-    product
+    capital.capital,
+    labor.labor,
+    product.product
 FROM
     capital
     JOIN labor USING (period)

@@ -75,23 +75,33 @@ This will:
 * Transform the raw data into intermediate, staging, and final tables according to the Cobb-Douglas production function and other relevant calculations.
 * The transformations are defined in the `dbt/models/` directory.
 
+You can specify different sets of triplets for different scenarios using the `--vars` flag. For example:
+
+```bash
+dbt run --vars '{active_cobb_douglas_spec: historical_douglas}' --profiles-dir dbt --project-dir dbt
+```
+
+Where you can change the value of `active_cobb_douglas_spec` to different configurations (e.g., `historical_nber`, `historical_douglas`, etc.).
+
 ### Visualize Results
 
 To visualize the results, run the following command in **Spyder** (or another interactive environment that supports matplotlib visualization):
 
 ```bash
-python viz/run_all.py
+%pwd
+# Ensure the current working directory is set to the project root, where 'etl-cobb-douglas-model' is located.
+# Output should be: '/path/to/etl-cobb-douglas-model'
+
+%run -m viz.run_all
 ```
 
 This will:
 
 * Generate the plots as presented in Cobb and Douglas’s 1928 paper.
-* Note: Plots are not displayed when running `uv run python -m viz.run_all` due to non-interactive backend limitations (e.g., `FigureCanvasAgg`). It is recommended to run the visualizations in Spyder or another IDE with an interactive plot window.
+* **Note**: Plots are not displayed when running `uv run python -m viz.run_all` due to non-interactive backend limitations (e.g., `FigureCanvasAgg`). It is recommended to run the visualizations in Spyder or another IDE with an interactive plot window.
+* Ensure you’re in the **project root directory** (`/path/to/etl-cobb-douglas-model`) before running the script, or use the `%cd` command to change to the correct directory.
 
-### Future Plans
-
-* The project will be extended to support additional datasets for other economies and periods.
-* A potential future enhancement could involve switching to a platform like Apache Superset for better interactive visualization capabilities, but this will be a future task.
+---
 
 ## Folder Structure
 
@@ -120,6 +130,7 @@ etl-cobb-douglas-model/
 │   │   │   └── cobb_douglas_series.sql
 │   │   ├── sources.yml # DBT source configurations
 │   │   └── staging/
+│   │       ├── stg_douglas.sql
 │   │       ├── stg_usa_cobb_douglas.sql
 │   │       └── stg_uscb.sql
 │   └── profiles.yml    # DBT profiles for connection settings
@@ -135,6 +146,8 @@ etl-cobb-douglas-model/
     ├── plot.py         # Plotting functions
     └── run_all.py      # Script to run all visualizations
 ```
+
+---
 
 ## License
 

@@ -1,3 +1,6 @@
+{% set spec = var('cobb_douglas_specs')[var('active_cobb_douglas_spec')] %}
+{% set base_year = spec.base_year %}
+
 WITH normalized_data AS (
     SELECT
         period,
@@ -7,7 +10,7 @@ WITH normalized_data AS (
     FROM
         {{ ref('int_inputs') }}
     WHERE
-        period = {{ var('base_year') }}
+        period = {{ base_year }}
 )
 SELECT
     t.period,

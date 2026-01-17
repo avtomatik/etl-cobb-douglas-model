@@ -42,6 +42,18 @@ vars:
         model: stg_douglas
         series_id: DT24AS01
 
+    massachusetts_douglas:
+      base_year: 1899
+      capital:
+        model: stg_douglas
+        series_id: DT19AS03
+      labor:
+        model: stg_douglas
+        series_id: DT19AS02
+      product:
+        model: stg_douglas
+        series_id: DT19AS01
+
 model-paths: ["models"]
 macro-paths: ["macros"]
 

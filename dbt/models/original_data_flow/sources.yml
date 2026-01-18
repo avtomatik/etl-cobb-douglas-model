@@ -1,0 +1,71 @@
+version: 2
+
+sources:
+  - name: cobb_douglas_parquet
+    description: "Raw Parquet files for tables as per C.W. Cobb, P.H. Douglas 'A Theory of Production' [Article]"
+    tables:
+      - name: page_0x8c
+        description: "Article, Page 140"
+        external:
+          location: "data/raw/page_0x8c.parquet"
+          file_format: parquet
+      - name: page_0x8e_table_0x1
+        description: "Article, Page 142, Table I"
+        external:
+          location: "data/raw/page_0x8e_table_0x1.parquet"
+          file_format: parquet
+      - name: page_0x90
+        description: "Article, Page 144"
+        external:
+          location: "data/raw/page_0x90.parquet"
+          file_format: parquet
+      - name: page_0x91_table_0x2
+        description: "Article, Page 145, Table II"
+        external:
+          location: "data/raw/page_0x91_table_0x2.parquet"
+          file_format: parquet
+      - name: page_0x92
+        description: "Article, Page 146"
+        external:
+          location: "data/raw/page_0x92.parquet"
+          file_format: parquet
+      - name: page_0x94_table_0x3
+        description: "Article, Page 148, Table III"
+        external:
+          location: "data/raw/page_0x94_table_0x3.parquet"
+          file_format: parquet
+      - name: page_0x95_table_0x4
+        description: "Article, Page 149, Table IV"
+        external:
+          location: "data/raw/page_0x95_table_0x4.parquet"
+          file_format: parquet
+      - name: page_0x98_table_0x6
+        description: "Article, Page 152, Table VI"
+        external:
+          location: "data/raw/page_0x98_table_0x6.parquet"
+          file_format: parquet
+      - name: page_0xa1
+        description: "Article, Page 161"
+        external:
+          location: "data/raw/page_0xa1.parquet"
+          file_format: parquet
+      - name: page_0xa2_table_0x9
+        description: "Article, Page 162, Table IX"
+        external:
+          location: "data/raw/page_0xa2_table_0x9.parquet"
+          file_format: parquet
+      - name: page_0xa3_table_0xa
+        description: "Article, Page 163, Table X"
+        external:
+          location: "data/raw/page_0xa3_table_0xa.parquet"
+          file_format: parquet
+      - name: page_0xa3_footnote_0x25
+        description: "Article, Page 163, Footnote 37"
+        external:
+          location: "data/raw/page_0xa3_footnote_0x25.parquet"
+          file_format: parquet
+      - name: page_0xa4_table_0xb
+        description: "Article, Page 164, Table XI"
+        external:
+          location: "data/raw/page_0xa4_table_0xb.parquet"
+          file_format: parquet

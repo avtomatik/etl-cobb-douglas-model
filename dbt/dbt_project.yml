@@ -65,5 +65,7 @@ models:
       +materialized: view
     marts:
       +materialized: view
+    raw_data:
+      +materialized: view
 
-    +threads: 1
+  +threads: 1

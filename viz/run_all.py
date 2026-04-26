@@ -1,5 +1,4 @@
 from core.data import duckdb_connection
-
 from viz.constants import PLOT_CONTRACT_COLUMNS
 from viz.plot import plot_cobb_douglas
 from viz.validation import validate_columns

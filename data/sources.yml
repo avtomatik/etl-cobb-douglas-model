@@ -1,6 +1,6 @@
 sources:
   douglas:
-    path: data/raw/douglas.zip
+    path: data/raw/json_gz/douglas.zip
     format: zip_json
     data_file: data.json.gz
     columns:
@@ -9,7 +9,7 @@ sources:
       - value
 
   usa_cobb_douglas:
-    path: data/raw/usa_cobb-douglas.zip
+    path: data/raw/json_gz/usa_cobb-douglas.zip
     format: zip_json
     data_file: data.json.gz
     columns:
@@ -18,7 +18,7 @@ sources:
       - value
 
   uscb:
-    path: data/raw/uscb.zip
+    path: data/raw/json_gz/uscb.zip
     format: zip_json
     data_file: data.json.gz
     columns:

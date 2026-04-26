@@ -2,7 +2,7 @@ WITH raw_data AS (
     SELECT
         *
     FROM
-        read_parquet('data/raw/page_0x8e_table_0x1.parquet')
+        read_parquet('data/raw/parquet/p142_t01_capital_components.parquet')
 )
 
 SELECT

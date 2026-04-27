@@ -37,7 +37,7 @@ def plot_cobb_douglas(
     if labels is None:
         labels = get_figure_labels()
 
-    start, end = df["period"].iloc[[0, -1]]
+    start, end = df["year"].iloc[[0, -1]]
 
     formatted_labels = {
         key: value.format(start=start, end=end, base_year=start)
@@ -47,7 +47,7 @@ def plot_cobb_douglas(
     # Create the first figure: Inputs over time
     fig, ax = plt.subplots()
     ax.semilogy(df[["capital_norm", "labor_norm", "product_norm"]])
-    ax.set_xlabel("Period")
+    ax.set_xlabel("Year")
     ax.set_ylabel("Indexes")
     ax.set_title(formatted_labels["chart_inputs"])
     ax.grid(True)
@@ -56,7 +56,7 @@ def plot_cobb_douglas(
     # Create the second figure: Actual vs Model Production
     fig, ax = plt.subplots()
     ax.semilogy(df[["product_norm", "product_model"]])
-    ax.set_xlabel("Period")
+    ax.set_xlabel("Year")
     ax.set_ylabel("Production")
     ax.set_title(formatted_labels["chart_actual_vs_model"])
     ax.grid(True)
@@ -73,7 +73,7 @@ def plot_cobb_douglas(
     ax.plot(
         df["product_model_gap"], label="Deviations of $P'$", linestyle="--"
     )
-    ax.set_xlabel("Period")
+    ax.set_xlabel("Year")
     ax.set_ylabel("Percentage Deviation")
     ax.set_title(formatted_labels["chart_gaps"])
     ax.grid(True)
@@ -82,7 +82,7 @@ def plot_cobb_douglas(
     # Create the fourth figure: Relative error in product model
     fig, ax = plt.subplots()
     ax.plot(df["product_model_error"])
-    ax.set_xlabel("Period")
+    ax.set_xlabel("Year")
     ax.set_ylabel("Percentage Deviation")
     ax.set_title(formatted_labels["chart_relative_error"])
     ax.grid(True)

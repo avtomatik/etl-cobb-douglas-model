@@ -50,7 +50,7 @@ sources:
               arguments:
                 combination_of_columns: [series_id, period]
 
-  - name: raw_parquet
+  - name: cobb_douglas_parquet
     description: "Raw Parquet files for tables as per C.W. Cobb, P.H. Douglas 'A Theory of Production' [Article]"
     tables:
       - name: p140_capital_components_partial
@@ -69,7 +69,7 @@ sources:
           location: "data/raw/parquet/p144_specified_capital_goods.parquet"
           file_format: parquet
       - name: p145_t02_fixed_capital_additions
-        description: "Table II: Estimated Annual Additions to Fixed Capital in Manufacturing Together with Cumulative Total Capital as Expressed in Terms of Cos and 1880 Prices (Millions of dollars), 1899--1922"
+        description: "Table II: Estimated Annual Additions to Fixed Capital in Manufacturing Together with Cumulative Total Capital as Expressed in Terms of Cost and 1880 Prices (Millions of dollars), 1899--1922"
         external:
           location: "data/raw/parquet/p145_t02_fixed_capital_additions.parquet"
           file_format: parquet

@@ -1,5 +1,5 @@
 SELECT
-    period :: int AS period,
+    period :: int AS year,
     series_id,
     value :: double AS value
 FROM

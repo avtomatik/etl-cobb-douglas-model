@@ -1,22 +1,22 @@
 {% set spec = var('cobb_douglas_specs')[var('active_cobb_douglas_spec')] %}
 {% set base_year = spec.base_year %}
 
-WITH normalized_data AS (
+WITH base AS (
     SELECT
-        period,
         capital AS base_capital,
         labor AS base_labor,
         product AS base_product
     FROM
         {{ ref('int_inputs') }}
     WHERE
-        period = {{ base_year }}
+        year = {{ base_year }}
 )
 SELECT
-    t.period,
+    t.year,
     100 * t.capital / b.base_capital AS capital_norm,
     100 * t.labor / b.base_labor AS labor_norm,
     100 * t.product / b.base_product AS product_norm
 FROM
     {{ ref('int_inputs') }} t
-JOIN normalized_data b ON 1 = 1
+CROSS JOIN base b
+ORDER BY t.year

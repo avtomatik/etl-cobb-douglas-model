@@ -13,7 +13,7 @@ def main():
             FROM
                 cobb_douglas_series
             ORDER BY
-                period
+                year
             """
         ).fetchdf()
 

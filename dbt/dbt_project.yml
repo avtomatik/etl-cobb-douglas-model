@@ -3,6 +3,7 @@ version: 1.0
 profile: cobb_douglas
 
 vars:
+  active_input_source: legacy
   active_cobb_douglas_spec: usa_baseline
 
   cobb_douglas_specs:
@@ -65,7 +66,10 @@ models:
       +materialized: view
     marts:
       +materialized: view
-    raw_data:
-      +materialized: view
+    cobb_douglas_1928:
+      raw:
+        +materialized: view
+      derived:
+        +materialized: view
 
   +threads: 1

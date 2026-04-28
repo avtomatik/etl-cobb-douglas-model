@@ -67,7 +67,7 @@ This will:
 To transform the raw data using DBT and the Cobb-Douglas production function, run:
 
 ```bash
-dbt run --profiles-dir dbt --project-dir dbt
+uv run dbt run --profiles-dir dbt --project-dir dbt
 ```
 
 This will:
@@ -78,7 +78,7 @@ This will:
 You can specify different sets of triplets for different scenarios using the `--vars` flag. For example:
 
 ```bash
-dbt run --vars '{active_cobb_douglas_spec: historical_douglas}' --profiles-dir dbt --project-dir dbt
+uv run dbt run --vars '{active_cobb_douglas_spec: historical_douglas}' --profiles-dir dbt --project-dir dbt
 ```
 
 Where you can change the value of `active_cobb_douglas_spec` to different configurations (e.g., `historical_nber`, `historical_douglas`, etc.).

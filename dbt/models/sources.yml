@@ -89,7 +89,7 @@ sources:
           location: "data/raw/parquet/p149_t04_manufacturing_output_index.parquet"
           file_format: parquet
       - name: p152_t06_business_annals
-        description: "Table VI: Relation between (1) Product Calculated from Recorded Values of L and C (Tables II and III) by Means of the Formula P'=1.01L^{frac34}C^{frac14} and (2) Recorded Values of Product (Table IV)"
+        description: "Table VI: Relation between Product Calculated from Recorded Values of L and C (Tables II and III) by Means of the Formula <formula> and Recorded Values of Product (Table IV)"
         external:
           location: "data/raw/parquet/p152_t06_business_annals.parquet"
           file_format: parquet
@@ -99,7 +99,7 @@ sources:
           location: "data/raw/parquet/p161_labor_productivity.parquet"
           file_format: parquet
       - name: p162_t09_value_product_prices
-        description: "Table IX: Relative Value Product of Manufactured Goods and Total Value Product of Manufacturing 1899-1922 (1899=100)"
+        description: "Table IX: Relative Value Product of Manufactured Goods and Total Value Product of Manufacturing 1899--1922, 1899=100"
         external:
           location: "data/raw/parquet/p162_t09_value_product_prices.parquet"
           file_format: parquet
@@ -108,13 +108,13 @@ sources:
         external:
           location: "data/raw/parquet/p163_t10_wages_share_value_added.parquet"
           file_format: parquet
-      - name: p163_fn25_value_productivity_per_labor
+      - name: p163_fn37_value_productivity_per_labor
         description: "Article, Page 163, Footnote 37"
         external:
-          location: "data/raw/parquet/p163_fn25_value_productivity_per_labor.parquet"
+          location: "data/raw/parquet/p163_fn37_value_productivity_per_labor.parquet"
           file_format: parquet
       - name: p164_t11_productivity_vs_wages
-        description: "Table XI: Relative Movement in Manufacturing of Imputed Value Product per Worker and Reald Wages (1899-1922) (1899--1908=100)"
+        description: "Table XI: Relative Movement in Manufacturing of Imputed Value Product per Worker and Real Wages (1899--1922) (1899--1908=100)"
         external:
           location: "data/raw/parquet/p164_t11_productivity_vs_wages.parquet"
           file_format: parquet

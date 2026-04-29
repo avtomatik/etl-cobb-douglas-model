@@ -130,12 +130,12 @@ series:
   raw: false
   description: Derived total value product
 - id: cd.fn37.s01
-  file: p163_t10_wages_share_value_added.parquet
+  file: p163_t10_value_productivity_per_labor.parquet
   column: value_productivity_per_labor_index
   raw: true
   description: Relative value productivity per unit labor
 - id: cd.t10.s01
-  file: p163_fn37_value_productivity_per_labor.parquet
+  file: p163_fn37_wages_share_value_added.parquet
   column: wages_share_value_added_pct
   raw: true
   description: Wages and salaries share of value added (%)

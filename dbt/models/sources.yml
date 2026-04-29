@@ -103,15 +103,15 @@ sources:
         external:
           location: "data/raw/parquet/p162_t09_value_product_prices.parquet"
           file_format: parquet
-      - name: p163_t10_wages_share_value_added
+      - name: p163_t10_value_productivity_per_labor
         description: "Table X: Relative Value Productivity Per Unit Labor 1899--1922"
         external:
-          location: "data/raw/parquet/p163_t10_wages_share_value_added.parquet"
+          location: "data/raw/parquet/p163_t10_value_productivity_per_labor.parquet"
           file_format: parquet
-      - name: p163_fn37_value_productivity_per_labor
+      - name: p163_fn37_wages_share_value_added
         description: "Article, Page 163, Footnote 37"
         external:
-          location: "data/raw/parquet/p163_fn37_value_productivity_per_labor.parquet"
+          location: "data/raw/parquet/p163_fn37_wages_share_value_added.parquet"
           file_format: parquet
       - name: p164_t11_productivity_vs_wages
         description: "Table XI: Relative Movement in Manufacturing of Imputed Value Product per Worker and Real Wages (1899--1922) (1899--1908=100)"

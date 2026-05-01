@@ -9,7 +9,7 @@ mfg_output AS (
 calculated AS (
     SELECT
         s.*,
-        CAST(ROUND(100 * price_mfg_index / price_all_commodities_index) AS INTEGER) AS ratio_mfg_share_all_commodities,
+        CAST(ROUND(100 * price_mfg_index / price_all_commodities_index) AS INTEGER) AS price_ratio_mfg_to_all_index,
         m.manufacturing_output_index
     FROM source_data s
     JOIN mfg_output m USING (year)
@@ -19,12 +19,12 @@ SELECT
     year,
     price_mfg_index,
     price_all_commodities_index,
-    ratio_mfg_share_all_commodities,
+    price_ratio_mfg_to_all_index,
 
     -- "Total Value Product" scaled as 100-based integer
     CAST(
-        ROUND(manufacturing_output_index * ratio_mfg_share_all_commodities / 100)
+        ROUND(manufacturing_output_index * price_ratio_mfg_to_all_index / 100)
         AS INTEGER
-    ) AS total_value_product
+    ) AS value_product_total_index
 FROM calculated
 ORDER BY year

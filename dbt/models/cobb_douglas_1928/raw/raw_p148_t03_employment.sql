@@ -14,6 +14,6 @@ SELECT
             employment_thousands /
             FIRST_VALUE(employment_thousands) OVER (ORDER BY year)
         ) AS INTEGER
-    ) AS relative_number_1899_100
+    ) AS employment_index_1899_100
 
 FROM source_data

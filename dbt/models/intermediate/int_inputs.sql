@@ -1,24 +1,77 @@
-{% set source_name = var('active_input_source', 'legacy') %}
+{% set spec_name = var('active_cobb_douglas_spec') %}
+{% set spec = var('cobb_douglas_specs')[spec_name] %}
 
-{% if source_name == 'legacy' %}
+{% if spec.capital.column is defined %}
+
+-- Wide-table paper sources
+
+WITH capital AS (
+    SELECT
+        year,
+        {{ spec.capital.column }} AS capital
+    FROM {{ ref(spec.capital.model) }}
+),
+
+labor AS (
+    SELECT
+        year,
+        {{ spec.labor.column }} AS labor
+    FROM {{ ref(spec.labor.model) }}
+),
+
+product AS (
+    SELECT
+        year,
+        {{ spec.product.column }} AS product
+    FROM {{ ref(spec.product.model) }}
+)
 
 SELECT
-    *
-FROM
-    {{ ref('int_inputs_legacy') }}
-
-{% elif source_name == 'original' %}
-
-SELECT
-    *
-FROM
-    {{ ref('int_inputs_original') }}
+    c.year,
+    c.capital,
+    l.labor,
+    p.product
+FROM capital c
+JOIN labor l USING (year)
+JOIN product p USING (year)
+ORDER BY c.year
 
 {% else %}
 
+-- Long-format JSON series
+
+WITH capital AS (
+    SELECT
+        year,
+        value AS capital
+    FROM {{ ref(spec.capital.model) }}
+    WHERE series_id = '{{ spec.capital.series_id }}'
+),
+
+labor AS (
+    SELECT
+        year,
+        value AS labor
+    FROM {{ ref(spec.labor.model) }}
+    WHERE series_id = '{{ spec.labor.series_id }}'
+),
+
+product AS (
+    SELECT
+        year,
+        value AS product
+    FROM {{ ref(spec.product.model) }}
+    WHERE series_id = '{{ spec.product.series_id }}'
+)
+
 SELECT
-    *
-FROM
-    {{ ref('int_inputs_legacy') }}
+    c.year,
+    c.capital,
+    l.labor,
+    p.product
+FROM capital c
+JOIN labor l USING (year)
+JOIN product p USING (year)
+ORDER BY c.year
 
 {% endif %}

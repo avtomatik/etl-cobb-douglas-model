@@ -8,15 +8,6 @@ sources:
       - period
       - value
 
-  usa_cobb_douglas:
-    path: data/raw/json_gz/usa_cobb-douglas.zip
-    format: zip_json
-    data_file: data.json.gz
-    columns:
-      - series_id
-      - period
-      - value
-
   uscb:
     path: data/raw/json_gz/uscb.zip
     format: zip_json

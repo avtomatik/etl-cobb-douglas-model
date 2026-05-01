@@ -1,14 +1,14 @@
 WITH labor AS (
     SELECT
         year,
-        relative_number_1899_100 AS labor_index
+        employment_index_1899_100 AS labor_index
     FROM {{ ref('raw_p148_t03_employment') }}
 ),
 
 capital AS (
     SELECT
         year,
-        relative_total_capital_1899_100 AS capital_index
+        capital_index_1899_100 AS capital_index
     FROM {{ ref('raw_p145_t02_fixed_capital_additions') }}
 ),
 

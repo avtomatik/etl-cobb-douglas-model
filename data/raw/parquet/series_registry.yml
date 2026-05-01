@@ -131,7 +131,7 @@ series:
   description: Derived total value product
 - id: cd.fn37.s01
   file: p163_t10_value_productivity_per_labor.parquet
-  column: value_productivity_per_labor_index
+  column: value_product_per_worker_index
   raw: true
   description: Relative value productivity per unit labor
 - id: cd.t10.s01

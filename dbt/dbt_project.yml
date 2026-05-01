@@ -2,74 +2,99 @@ name: cobb_douglas
 version: 1.0
 profile: cobb_douglas
 
+model-paths: ["models"]
+macro-paths: ["macros"]
+
 vars:
-  active_input_source: legacy
-  active_cobb_douglas_spec: usa_baseline
+  active_input_source: paper_tables
+  active_cobb_douglas_spec: paper_baseline
 
   cobb_douglas_specs:
-    usa_baseline:
-      base_year: 1899
-      capital:
-        model: stg_usa_cobb_douglas
-        series_id: CDT2S4
-      labor:
-        model: stg_usa_cobb_douglas
-        series_id: CDT3S1
-      product:
-        model: stg_uscb
-        series_id: J0014
 
-    historical_nber:
+    paper_baseline:
       base_year: 1899
-      capital:
-        model: stg_usa_cobb_douglas
-        series_id: CDT2S4
-      labor:
-        model: stg_usa_cobb_douglas
-        series_id: CDT3S1
-      product:
-        model: stg_uscb
-        series_id: J0013
 
-    historical_douglas:
-      base_year: 1899
       capital:
-        model: stg_usa_cobb_douglas
-        series_id: CDT2S4
-      labor:
-        model: stg_usa_cobb_douglas
-        series_id: CDT3S1
-      product:
-        model: stg_douglas
-        series_id: DT24AS01
+        model: raw_p145_t02_fixed_capital_additions
+        column: capital_index_1899_100
 
-    massachusetts_douglas:
+      labor:
+        model: raw_p148_t03_employment
+        column: employment_index_1899_100
+
+      product:
+        model: raw_p149_t04_manufacturing_output_index
+        column: manufacturing_output_index
+
+    douglas_massachusetts:
       base_year: 1899
+
       capital:
         model: stg_douglas
         series_id: DT19AS03
+
       labor:
         model: stg_douglas
         series_id: DT19AS02
+
       product:
         model: stg_douglas
         series_id: DT19AS01
 
-model-paths: ["models"]
-macro-paths: ["macros"]
+    json_historical_us:
+      base_year: 1899
+
+      capital:
+        model: stg_douglas
+        series_id: DT24AS04
+
+      labor:
+        model: stg_douglas
+        series_id: DT24AS02
+
+      product:
+        model: stg_uscb
+        series_id: J0014
+
+    historical_nber_product:
+      base_year: 1899
+
+      capital:
+        model: raw_p145_t02_fixed_capital_additions
+        column: capital_index_1899_100
+
+      labor:
+        model: raw_p148_t03_employment
+        column: employment_index_1899_100
+
+      product:
+        model: stg_uscb
+        series_id: J0013
 
 models:
   cobb_douglas:
+
     staging:
+      +schema: analytics
       +materialized: view
+
     intermediate:
+      +schema: analytics
       +materialized: view
+
     marts:
+      +schema: analytics
       +materialized: view
+      mart_original_paper_reproduction:
+        +materialized: table
+
     cobb_douglas_1928:
+      +schema: original
+
       raw:
         +materialized: table
+
       derived:
-        +materialized: view
+        +materialized: table
 
   +threads: 1

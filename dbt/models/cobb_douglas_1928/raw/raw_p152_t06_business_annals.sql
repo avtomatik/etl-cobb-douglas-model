@@ -1,9 +1,9 @@
 WITH labor AS (
-    SELECT year, relative_number_1899_100
+    SELECT year, employment_index_1899_100
     FROM {{ ref('raw_p148_t03_employment') }}
 ),
 capital AS (
-    SELECT year, relative_total_capital_1899_100
+    SELECT year, capital_index_1899_100
     FROM {{ ref('raw_p145_t02_fixed_capital_additions') }}
 ),
 product_recorded AS (
@@ -17,7 +17,7 @@ business_annals AS (
 calculated AS (
     SELECT
         b.year,
-        1.01 * POWER(l.relative_number_1899_100, 0.75) * POWER(c.relative_total_capital_1899_100, 0.25) AS product_calculated_float,
+        1.01 * POWER(l.employment_index_1899_100, 0.75) * POWER(c.capital_index_1899_100, 0.25) AS product_calculated_float,
         p.manufacturing_output_index AS product_recorded,
         b.business_annals_note
     FROM

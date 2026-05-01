@@ -7,5 +7,5 @@ WITH source_data AS (
 
 SELECT
     *,
-    buildings_value_musd + machinery_value_musd AS total_value_musd
+    buildings_value_musd + machinery_value_musd AS capital_total_musd
 FROM source_data

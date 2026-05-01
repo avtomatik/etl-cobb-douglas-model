@@ -22,7 +22,7 @@ SELECT
         100.0 * (w.real_wages_index - p.value_product_per_worker_index) 
                / p.value_product_per_worker_index,
         1
-    ) AS percent_deviation_product_vs_wages,
+    ) AS real_wages_deviation_from_productivity_pct,
     w.business_annals_note
 
 FROM productivity p

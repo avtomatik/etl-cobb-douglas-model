@@ -37,7 +37,7 @@ SELECT
         ROUND(
             100 * c.total_fixed_capital_1880_dollars / b.base_capital
         ) AS INTEGER
-    ) AS relative_total_capital_1899_100
+    ) AS capital_index_1899_100
 
 FROM calculated c
 CROSS JOIN base_year b

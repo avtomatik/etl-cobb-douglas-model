@@ -68,7 +68,7 @@ models:
       +materialized: view
     cobb_douglas_1928:
       raw:
-        +materialized: view
+        +materialized: table
       derived:
         +materialized: view
 

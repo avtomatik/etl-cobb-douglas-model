@@ -2,14 +2,14 @@ WITH capital AS (
     SELECT
         year,
         total_fixed_capital_1880_dollars AS capital
-    FROM {{ ref('drv_p145_t02_fixed_capital_additions') }}
+    FROM {{ ref('raw_p145_t02_fixed_capital_additions') }}
 ),
 
 labor AS (
     SELECT
         year,
         employment_thousands AS labor
-    FROM {{ ref('drv_p148_t03_employment') }}
+    FROM {{ ref('raw_p148_t03_employment') }}
 ),
 
 product AS (

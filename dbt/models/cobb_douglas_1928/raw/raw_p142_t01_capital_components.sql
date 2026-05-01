@@ -1,4 +1,11 @@
+WITH source_data AS (
+    SELECT
+        *
+    FROM
+        read_parquet('data/raw/parquet/p142_t01_capital_components.parquet')
+)
+
 SELECT
-    *
-FROM
-    read_parquet('data/raw/parquet/p142_t01_capital_components.parquet')
+    *,
+    buildings_value_musd + machinery_value_musd AS total_value_musd
+FROM source_data

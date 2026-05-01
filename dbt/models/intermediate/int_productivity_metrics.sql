@@ -1,6 +1,6 @@
 WITH normalized_data AS (
     SELECT
-        period,
+        year,
         capital_norm,
         labor_norm,
         product_norm
@@ -9,7 +9,7 @@ WITH normalized_data AS (
 ),
 product_trend_and_gap AS (
     SELECT
-        period,
+        year,
         capital_norm,
         labor_norm,
         product_norm,
@@ -18,16 +18,16 @@ product_trend_and_gap AS (
         (product_norm / labor_norm) AS labor_productivity,
         (labor_norm / capital_norm) AS capital_labor_ratio,
         (product_norm / capital_norm) AS capital_turnover,
-        -- Compute the product trend (3-period rolling average)
+        -- Compute the product trend (3-year rolling average)
         AVG(product_norm) OVER (
             ORDER BY
-                period ROWS BETWEEN 1 PRECEDING
+                year ROWS BETWEEN 1 PRECEDING
                 AND 1 FOLLOWING
         ) AS product_trend,
         -- Compute the product gap (deviation from trend)
         product_norm - AVG(product_norm) OVER (
             ORDER BY
-                period ROWS BETWEEN 1 PRECEDING
+                year ROWS BETWEEN 1 PRECEDING
                 AND 1 FOLLOWING
         ) AS product_gap
     FROM

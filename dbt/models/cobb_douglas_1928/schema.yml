@@ -1,0 +1,20 @@
+version: 2
+ 
+models:
+  - name: raw_p145_t02_fixed_capital_additions
+    columns:
+      - name: year
+        tests: [not_null, unique]
+ 
+      - name: capital_index_1899_100
+        tests: [not_null]
+ 
+  - name: raw_p148_t03_employment
+    columns:
+      - name: year
+        tests: [not_null, unique]
+ 
+  - name: raw_p149_t04_manufacturing_output_index
+    columns:
+      - name: year
+        tests: [not_null, unique]

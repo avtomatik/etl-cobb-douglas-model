@@ -8,21 +8,6 @@ sources:
       One table per source dataset, loaded verbatim by ingest/main.py.
 
     tables:
-      - name: usa_cobb_douglas
-        description: >
-          U.S. Cobb–Douglas manufacturing series as used by Cobb & Douglas (1928).
-        columns:
-          - name: series_id
-            description: Series identifier
-          - name: period
-            description: Observation year
-          - name: value
-            description: Reported value
-        tests:
-          - dbt_utils.unique_combination_of_columns:
-              arguments:
-                combination_of_columns: [series_id, period]
-
       - name: uscb
         description: >
           U.S. Census Bureau production series.
@@ -49,3 +34,72 @@ sources:
           - dbt_utils.unique_combination_of_columns:
               arguments:
                 combination_of_columns: [series_id, period]
+
+  - name: cobb_douglas_parquet
+    description: "Raw Parquet files for tables as per C.W. Cobb, P.H. Douglas 'A Theory of Production' [Article]"
+    tables:
+      - name: p140_capital_components_partial
+        description: "Article, Page 140"
+        external:
+          location: "data/raw/parquet/p140_capital_components_partial.parquet"
+          file_format: parquet
+      - name: p142_t01_capital_components
+        description: "Table I: Estimated Values of Manufacturing Buildings and Machinery, Tools and Equipment and Percentages Which They Formed of Total Manufacturing Capital, 1879--1922"
+        external:
+          location: "data/raw/parquet/p142_t01_capital_components.parquet"
+          file_format: parquet
+      - name: p144_specified_capital_goods
+        description: "Article, Page 144"
+        external:
+          location: "data/raw/parquet/p144_specified_capital_goods.parquet"
+          file_format: parquet
+      - name: p145_t02_fixed_capital_additions
+        description: "Table II: Estimated Annual Additions to Fixed Capital in Manufacturing Together with Cumulative Total Capital as Expressed in Terms of Cost and 1880 Prices (Millions of dollars), 1899--1922"
+        external:
+          location: "data/raw/parquet/p145_t02_fixed_capital_additions.parquet"
+          file_format: parquet
+      - name: p146_capital_comparison_ma_us
+        description: "Article, Page 146"
+        external:
+          location: "data/raw/parquet/p146_capital_comparison_ma_us.parquet"
+          file_format: parquet
+      - name: p148_t03_employment
+        description: "Table III: The Probable Average Number of Wage-Earners Employed in Manufacturing 1899--1922"
+        external:
+          location: "data/raw/parquet/p148_t03_employment.parquet"
+          file_format: parquet
+      - name: p149_t04_manufacturing_output_index
+        description: "Table IV: Index of Physical Volume of Manufactures in the United States"
+        external:
+          location: "data/raw/parquet/p149_t04_manufacturing_output_index.parquet"
+          file_format: parquet
+      - name: p152_t06_business_annals
+        description: "Table VI: Relation between Product Calculated from Recorded Values of L and C (Tables II and III) by Means of the Formula <formula> and Recorded Values of Product (Table IV)"
+        external:
+          location: "data/raw/parquet/p152_t06_business_annals.parquet"
+          file_format: parquet
+      - name: p161_labor_productivity
+        description: "Article, Page 161"
+        external:
+          location: "data/raw/parquet/p161_labor_productivity.parquet"
+          file_format: parquet
+      - name: p162_t09_value_product_prices
+        description: "Table IX: Relative Value Product of Manufactured Goods and Total Value Product of Manufacturing 1899--1922, 1899=100"
+        external:
+          location: "data/raw/parquet/p162_t09_value_product_prices.parquet"
+          file_format: parquet
+      - name: p163_fn37_wages_share_value_added
+        description: "Article, Page 163, Footnote 37"
+        external:
+          location: "data/raw/parquet/p163_fn37_wages_share_value_added.parquet"
+          file_format: parquet
+      - name: p163_t10_value_productivity_per_labor
+        description: "Table X: Relative Value Productivity Per Unit Labor 1899--1922"
+        external:
+          location: "data/raw/parquet/p163_t10_value_productivity_per_labor.parquet"
+          file_format: parquet
+      - name: p164_t11_productivity_vs_wages
+        description: "Table XI: Relative Movement in Manufacturing of Imputed Value Product per Worker and Real Wages (1899--1922) (1899--1908=100)"
+        external:
+          location: "data/raw/parquet/p164_t11_productivity_vs_wages.parquet"
+          file_format: parquet

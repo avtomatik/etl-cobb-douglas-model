@@ -15,7 +15,7 @@ product_model_data AS (
         CROSS JOIN regression e
 )
 SELECT
-    pmd.period,
+    pmd.year,
     pmd.capital_norm,
     pmd.labor_norm,
     pmd.product_norm,
@@ -26,16 +26,16 @@ SELECT
     pmd.product_trend,
     pmd.product_gap,
     pmd.product_model,
-    -- Calculate the product model trend (3-period rolling average)
+    -- Calculate the product model trend (3-year rolling average)
     AVG(pmd.product_model) OVER (
         ORDER BY
-            pmd.period ROWS BETWEEN 1 PRECEDING
+            pmd.year ROWS BETWEEN 1 PRECEDING
             AND 1 FOLLOWING
     ) AS product_model_trend,
     -- Calculate the product model gap (deviation from trend)
     pmd.product_model - AVG(pmd.product_model) OVER (
         ORDER BY
-            pmd.period ROWS BETWEEN 1 PRECEDING
+            pmd.year ROWS BETWEEN 1 PRECEDING
             AND 1 FOLLOWING
     ) AS product_model_gap,
     -- Calculate the product model error (deviation from actual product)

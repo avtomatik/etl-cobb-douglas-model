@@ -1,43 +1,77 @@
 {% set spec_name = var('active_cobb_douglas_spec') %}
 {% set spec = var('cobb_douglas_specs')[spec_name] %}
-{% set base_year = spec.base_year %}
+
+{% if spec.capital.column is defined %}
+
+-- Wide-table paper sources
 
 WITH capital AS (
     SELECT
-        period,
-        value AS capital
-    FROM
-        {{ ref(spec.capital.model) }}
-    WHERE
-        series_id = '{{ spec.capital.series_id }}'
+        year,
+        {{ spec.capital.column }} AS capital
+    FROM {{ ref(spec.capital.model) }}
 ),
 
 labor AS (
     SELECT
-        period,
-        value AS labor
-    FROM
-        {{ ref(spec.labor.model) }}
-    WHERE
-        series_id = '{{ spec.labor.series_id }}'
+        year,
+        {{ spec.labor.column }} AS labor
+    FROM {{ ref(spec.labor.model) }}
 ),
 
 product AS (
     SELECT
-        period,
-        value AS product
-    FROM
-        {{ ref(spec.product.model) }}
-    WHERE
-        series_id = '{{ spec.product.series_id }}'
+        year,
+        {{ spec.product.column }} AS product
+    FROM {{ ref(spec.product.model) }}
 )
 
 SELECT
-    capital.period,
-    capital.capital,
-    labor.labor,
-    product.product
-FROM
-    capital
-    JOIN labor USING (period)
-    JOIN product USING (period)
+    c.year,
+    c.capital,
+    l.labor,
+    p.product
+FROM capital c
+JOIN labor l USING (year)
+JOIN product p USING (year)
+ORDER BY c.year
+
+{% else %}
+
+-- Long-format JSON series
+
+WITH capital AS (
+    SELECT
+        year,
+        value AS capital
+    FROM {{ ref(spec.capital.model) }}
+    WHERE series_id = '{{ spec.capital.series_id }}'
+),
+
+labor AS (
+    SELECT
+        year,
+        value AS labor
+    FROM {{ ref(spec.labor.model) }}
+    WHERE series_id = '{{ spec.labor.series_id }}'
+),
+
+product AS (
+    SELECT
+        year,
+        value AS product
+    FROM {{ ref(spec.product.model) }}
+    WHERE series_id = '{{ spec.product.series_id }}'
+)
+
+SELECT
+    c.year,
+    c.capital,
+    l.labor,
+    p.product
+FROM capital c
+JOIN labor l USING (year)
+JOIN product p USING (year)
+ORDER BY c.year
+
+{% endif %}

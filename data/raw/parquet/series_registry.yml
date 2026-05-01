@@ -1,0 +1,161 @@
+series:
+- id: cd.p140.s01
+  file: p140_capital_components_partial.parquet
+  column: buildings_value_musd
+  raw: true
+  description: Value of Factory Buildings (million USD)
+- id: cd.p140.s02
+  file: p140_capital_components_partial.parquet
+  column: buildings_pct_total_capital
+  raw: true
+  description: Buildings share of total manufacturing capital (%)
+- id: cd.p140.s03
+  file: p140_capital_components_partial.parquet
+  column: machinery_value_musd
+  raw: true
+  description: Machinery value (million USD)
+- id: cd.p140.s04
+  file: p140_capital_components_partial.parquet
+  column: machinery_pct_total_capital
+  raw: true
+  description: Machinery share of total manufacturing capital (%)
+- id: cd.t01.s01
+  file: p142_t01_capital_components.parquet
+  column: buildings_pct_total_capital
+  raw: true
+  description: Buildings share of total capital (%)
+- id: cd.t01.s02
+  file: p142_t01_capital_components.parquet
+  column: machinery_pct_total_capital
+  raw: true
+  description: Machinery share of total capital (%)
+- id: cd.t01.s03
+  file: p142_t01_capital_components.parquet
+  column: buildings_value_musd
+  raw: true
+  description: Buildings value (million USD)
+- id: cd.t01.s04
+  file: p142_t01_capital_components.parquet
+  column: machinery_value_musd
+  raw: true
+  description: Machinery value (million USD)
+- id: cd.t01.s05
+  file: p142_t01_capital_components.parquet
+  column: capital_total_musd
+  raw: false
+  description: 'Derived: buildings + machinery'
+- id: cd.p144.s01
+  file: p144_specified_capital_goods.parquet
+  column: specified_capital_goods_value_musd
+  raw: true
+  description: Specified capital goods value (million USD)
+- id: cd.t02.s01
+  file: p145_t02_fixed_capital_additions.parquet
+  column: annual_increase_cost_price_musd
+  raw: true
+  description: Annual increase in cost prices
+- id: cd.t02.s02
+  file: p145_t02_fixed_capital_additions.parquet
+  column: cost_index_1880eq100
+  raw: true
+  description: Cost index (1880=100)
+- id: cd.t02.s03
+  file: p145_t02_fixed_capital_additions.parquet
+  column: annual_increase_1880usd_musd
+  raw: true
+  description: Annual increase in 1880 dollars
+- id: cd.t02.s04
+  file: p145_t02_fixed_capital_additions.parquet
+  column: fixed_capital_total_1880usd_musd
+  raw: false
+  description: Derived cumulative capital + 4062
+- id: cd.t02.s05
+  file: p145_t02_fixed_capital_additions.parquet
+  column: fixed_capital_index_1899eq100
+  raw: false
+  description: Derived relative capital index
+- id: cd.p146.s01
+  file: p146_capital_comparison_ma_us.parquet
+  column: massachusetts_total_capital_index
+  raw: true
+  description: Massachusetts total capital
+- id: cd.p146.s02
+  file: p146_capital_comparison_ma_us.parquet
+  column: us_fixed_capital_index
+  raw: true
+  description: Estimated United States fixed capital
+- id: cd.t03.s01
+  file: p148_t03_employment.parquet
+  column: employment_thousands
+  raw: true
+  description: Average number employed (thousands)
+- id: cd.t03.s02
+  file: p148_t03_employment.parquet
+  column: employment_index_1899eq100
+  raw: false
+  description: Derived employment index
+- id: cd.t04.s01
+  file: p149_t04_manufacturing_output_index.parquet
+  column: manufacturing_output_index
+  raw: true
+  description: Physical volume of manufactures
+- id: cd.t06.s01
+  file: p152_t06_business_annals.parquet
+  column: business_annals_note
+  raw: true
+  description: Business annals annotation
+- id: cd.p161.s01
+  file: p161_labor_productivity.parquet
+  column: labor_productivity_index_1899eq100
+  raw: true
+  description: Relative physical productivity of labor
+- id: cd.t09.s01
+  file: p162_t09_value_product_prices.parquet
+  column: price_mfg_index
+  raw: true
+  description: Manufacturing commodity prices
+- id: cd.t09.s02
+  file: p162_t09_value_product_prices.parquet
+  column: price_all_commodities_index
+  raw: true
+  description: All commodity prices
+- id: cd.t09.s03
+  file: p162_t09_value_product_prices.parquet
+  column: price_ratio_mfg_to_all
+  raw: false
+  description: Derived price ratio
+- id: cd.t09.s04
+  file: p162_t09_value_product_prices.parquet
+  column: value_product_total_index
+  raw: false
+  description: Derived total value product
+- id: cd.fn37.s01
+  file: p163_t10_value_productivity_per_labor.parquet
+  column: value_product_per_worker_index
+  raw: true
+  description: Relative value productivity per unit labor
+- id: cd.t10.s01
+  file: p163_fn37_wages_share_value_added.parquet
+  column: wages_share_value_added_pct
+  raw: true
+  description: Wages and salaries share of value added (%)
+- id: cd.t11.s01
+  file: p164_t11_productivity_vs_wages.parquet
+  column: value_product_per_worker_index
+  raw: true
+  description: Value product per worker
+- id: cd.t11.s02
+  file: p164_t11_productivity_vs_wages.parquet
+  column: real_wages_index
+  raw: true
+  description: Real wages
+- id: cd.t11.s03
+  file: p164_t11_productivity_vs_wages.parquet
+  column: deviation_pct
+  raw: false
+  description: Derived deviation of wages from product
+- id: cd.t11.s04
+  file: p164_t11_productivity_vs_wages.parquet
+  column: business_annals_note
+  raw: true
+  description: Business annals note

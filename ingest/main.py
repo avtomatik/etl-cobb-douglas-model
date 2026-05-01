@@ -4,12 +4,12 @@ from pathlib import Path
 
 import yaml
 
-from core.config import SOURCES_YAML
 from core.data import duckdb_connection
+from core.paths import SOURCES_PATH
 
 
 def load_config():
-    with SOURCES_YAML.open(encoding="utf-8") as f:
+    with SOURCES_PATH.open(encoding="utf-8") as f:
         return yaml.safe_load(f)["sources"]
 
 

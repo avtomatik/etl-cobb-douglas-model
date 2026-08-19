@@ -130,3 +130,6 @@ dmypy.json
 .user.yml
 package-lock.yml
 dbt_packages/
+
+# Apple Desktop Services Store
+.DS_Store

@@ -31,30 +31,30 @@ vars:
 
       capital:
         model: stg_douglas
-        series_id: DT19AS03
+        series_code: DT19AS03
 
       labor:
         model: stg_douglas
-        series_id: DT19AS02
+        series_code: DT19AS02
 
       product:
         model: stg_douglas
-        series_id: DT19AS01
+        series_code: DT19AS01
 
     json_historical_us:
       base_year: 1899
 
       capital:
         model: stg_douglas
-        series_id: DT24AS04
+        series_code: DT24AS04
 
       labor:
         model: stg_douglas
-        series_id: DT24AS02
+        series_code: DT24AS02
 
       product:
         model: stg_uscb
-        series_id: J0014
+        series_code: J0014
 
     historical_nber_product:
       base_year: 1899
@@ -69,7 +69,7 @@ vars:
 
       product:
         model: stg_uscb
-        series_id: J0013
+        series_code: J0013
 
 models:
   cobb_douglas:

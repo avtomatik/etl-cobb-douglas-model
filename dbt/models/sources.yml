@@ -12,28 +12,28 @@ sources:
         description: >
           U.S. Census Bureau production series.
         columns:
-          - name: series_id
+          - name: series_code
             description: Series identifier
-          - name: period
+          - name: year
             description: Observation year
           - name: value
             description: Reported value
         tests:
           - dbt_utils.unique_combination_of_columns:
               arguments:
-                combination_of_columns: [series_id, period]
+                combination_of_columns: [series_code, year]
 
       - name: douglas
         description: >
           Original Douglas dataset (historical reference / robustness checks).
         columns:
-          - name: series_id
-          - name: period
+          - name: series_code
+          - name: year
           - name: value
         tests:
           - dbt_utils.unique_combination_of_columns:
               arguments:
-                combination_of_columns: [series_id, period]
+                combination_of_columns: [series_code, year]
 
   - name: cobb_douglas_parquet
     description: "Raw Parquet files for tables as per C.W. Cobb, P.H. Douglas 'A Theory of Production' [Article]"

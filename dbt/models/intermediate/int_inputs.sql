@@ -45,7 +45,7 @@ WITH capital AS (
         year,
         value AS capital
     FROM {{ ref(spec.capital.model) }}
-    WHERE series_id = '{{ spec.capital.series_id }}'
+    WHERE series_code = '{{ spec.capital.series_code }}'
 ),
 
 labor AS (
@@ -53,7 +53,7 @@ labor AS (
         year,
         value AS labor
     FROM {{ ref(spec.labor.model) }}
-    WHERE series_id = '{{ spec.labor.series_id }}'
+    WHERE series_code = '{{ spec.labor.series_code }}'
 ),
 
 product AS (
@@ -61,7 +61,7 @@ product AS (
         year,
         value AS product
     FROM {{ ref(spec.product.model) }}
-    WHERE series_id = '{{ spec.product.series_id }}'
+    WHERE series_code = '{{ spec.product.series_code }}'
 )
 
 SELECT

@@ -1,18 +1,16 @@
 sources:
   douglas:
-    path: data/raw/json_gz/douglas.zip
-    format: zip_json
-    data_file: data.json.gz
+    path: data/raw/parquet/douglas.parquet
+    format: parquet
     columns:
-      - series_id
-      - period
+      - series_code
+      - year
       - value
 
   uscb:
-    path: data/raw/json_gz/uscb.zip
-    format: zip_json
-    data_file: data.json.gz
+    path: data/raw/parquet/uscb.parquet
+    format: parquet
     columns:
-      - series_id
-      - period
+      - series_code
+      - year
       - value

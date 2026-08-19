@@ -67,6 +67,7 @@ This will:
 To transform the raw data using DBT and the Cobb-Douglas production function, run:
 
 ```bash
+uv run dbt deps --project-dir dbt
 uv run dbt run --profiles-dir dbt --project-dir dbt
 ```
 

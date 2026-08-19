@@ -1,5 +1,3 @@
-import tempfile
-import zipfile
 from pathlib import Path
 
 import yaml
@@ -14,30 +12,19 @@ def load_config():
 
 
 def ingest_zip_json(*, table_name: str, cfg: dict) -> None:
-    zip_path = Path(cfg["path"])
-    data_file = cfg["data_file"]
+    parquet_path = Path(cfg["path"])
     columns = ", ".join(cfg["columns"])
 
     with duckdb_connection() as con:
         con.execute("CREATE SCHEMA IF NOT EXISTS raw;")
 
-        with zipfile.ZipFile(zip_path) as archive:
-            with archive.open(data_file) as src:
-                with tempfile.NamedTemporaryFile(
-                    delete=False, suffix=".json.gz"
-                ) as tmp_file:
-                    tmp_file.write(src.read())
-                    tmp_file_path = Path(tmp_file.name)
-
         con.execute(
             f"""
             CREATE OR REPLACE TABLE raw.{table_name} AS
             SELECT {columns}
-            FROM read_json('{tmp_file_path}');
+            FROM read_parquet('{parquet_path}');
             """
         )
-
-        tmp_file_path.unlink()
 
     print(f"Ingested raw.{table_name}")
 
